@@ -7,17 +7,20 @@ import math
 pygame.init()
 
 # Constants
-SCREEN_WIDTH = 1080
-SCREEN_HEIGHT = 720
+SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1080
 BACKGROUND_COLOR = (60, 60, 60)
 PLAYER_COLOR = (0, 0, 255)
 OBJECTIVE_COLOR = (255, 255, 255)
 ENEMY_COLOR = (255, 0, 0)
 BULLET_COLOR = (255, 255, 0)
 PLAYER_SPEED = 5
-ENEMY_SPEED = 5
-ENEMY_SPAWN_INTERVAL = 30  # Number of frames between enemy spawns
+ENEMY_SPEED = 2
+ENEMY_SPAWN_INTERVAL = 60  # Number of frames between enemy spawns
 BULLET_SPEED = 8
+MAX_BULLET_COUNT = 10  # Maximum number of bullets the player can carry
+BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
+BULLET_FIRE_DELAY = 5  # Delay in frames between consecutive shots
 OBJECTIVE_HIT_POINTS = 100
 
 # Create the screen
@@ -29,6 +32,8 @@ class Player:
     def __init__(self):
         self.rect = pygame.Rect(SCREEN_WIDTH // 2 - 25, SCREEN_HEIGHT // 2 - 25, 50, 50)
         self.score = 0
+        self.bullet_count = MAX_BULLET_COUNT  # Initialize the bullet count
+        self.bullet_fire_delay = 0
 
     def move(self, keys):
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -39,6 +44,10 @@ class Player:
             self.rect.y -= PLAYER_SPEED
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.rect.y += PLAYER_SPEED
+
+    def update(self):
+        if self.bullet_fire_delay > 0:
+            self.bullet_fire_delay -= 1
 
     def draw(self, screen):
         pygame.draw.rect(screen, PLAYER_COLOR, self.rect)
@@ -55,7 +64,7 @@ class Objective:
 # Enemy Class
 class Enemy:
     def __init__(self):
-        self.rect = pygame.Rect(random.randint(0, SCREEN_WIDTH -32), random.randint(0, SCREEN_HEIGHT - 32), 32, 32)
+        self.rect = pygame.Rect(random.randint(0, SCREEN_WIDTH -32), random.randint(0, SCREEN_HEIGHT - 32), 75, 75)
 
     def move_towards_objective(self, objective):
         dx = objective.rect.x - self.rect.x
@@ -113,11 +122,19 @@ while running:
             objective.health -= 10
             enemies.remove(enemy)  # Remove enemy when it reaches the objective
 
-    # Shoot a bullet when the left mouse button is pressed
-    if pygame.mouse.get_pressed()[0]:
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
-        bullets.append(bullet)
+    # Check for player shooting
+    if pygame.mouse.get_pressed()[0] and player.bullet_count > 0:
+        if player.bullet_fire_delay == 0:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
+            bullets.append(bullet)
+            player.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
+            player.bullet_count -= 1  # Decrement the bullet count
+
+    # Update bullet fire delay
+    if player.bullet_fire_delay > 0:
+        player.bullet_fire_delay -= 1
+
 
     # Update bullet positions and check for collisions with enemies
     for bullet in bullets:
@@ -129,6 +146,11 @@ while running:
                 bullets.remove(bullet)
                 enemies.remove(enemy)
                 player.score += 1
+                player.bullet_count += BULLET_RELOAD_AMOUNT  # Gain additional bullets
+
+    # Cap the bullet count to the maximum value
+    if player.bullet_count > MAX_BULLET_COUNT:
+        player.bullet_count = MAX_BULLET_COUNT
 
     # Clear the screen
     screen.fill(BACKGROUND_COLOR)
@@ -145,12 +167,14 @@ while running:
     if objective.health <= 0:
         running = False
 
-    # Display player score and objective health
+    # Display player score, objective health, and remaining bullets
     font = pygame.font.Font(None, 36)
     score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
     health_text = font.render(f"Objective Health: {objective.health}", True, (255, 255, 255))
+    bullet_text = font.render(f"Bullets: {player.bullet_count}", True, (255, 255, 255))
     screen.blit(score_text, (10, 10))
     screen.blit(health_text, (10, 50))
+    screen.blit(bullet_text, (10, 90))
 
     # Update the display
     pygame.display.flip()
