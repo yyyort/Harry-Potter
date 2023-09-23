@@ -1,118 +1,178 @@
-import pygame, sys
+import pygame
+import sys
+import random
+import math
 
+# Initialize Pygame
 pygame.init()
 
-#Variable Constants
-    #Display
-screenWidth = 1080
-screenHeight = 720
-title = "MAGE GEM DEFENSE"
+# Constants
+SCREEN_WIDTH = 1080
+SCREEN_HEIGHT = 720
+BACKGROUND_COLOR = (60, 60, 60)
+PLAYER_COLOR = (0, 0, 255)
+OBJECTIVE_COLOR = (255, 255, 255)
+ENEMY_COLOR = (255, 0, 0)
+BULLET_COLOR = (255, 255, 0)
+PLAYER_SPEED = 5
+ENEMY_SPEED = 5
+ENEMY_SPAWN_INTERVAL = 30  # Number of frames between enemy spawns
+BULLET_SPEED = 8
+OBJECTIVE_HIT_POINTS = 100
+
+# Create the screen
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Defend the Objective")
+
+# Player Class
+class Player:
+    def __init__(self):
+        self.rect = pygame.Rect(SCREEN_WIDTH // 2 - 25, SCREEN_HEIGHT // 2 - 25, 50, 50)
+        self.score = 0
+
+    def move(self, keys):
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            self.rect.x -= PLAYER_SPEED
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            self.rect.x += PLAYER_SPEED
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
+            self.rect.y -= PLAYER_SPEED
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+            self.rect.y += PLAYER_SPEED
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, PLAYER_COLOR, self.rect)
+
+# Objective Class
+class Objective:
+    def __init__(self):
+        self.rect = pygame.Rect(SCREEN_WIDTH // 2 - 25, SCREEN_HEIGHT // 2 - 25, 50, 50)
+        self.health = OBJECTIVE_HIT_POINTS
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, OBJECTIVE_COLOR, self.rect)
+
+# Enemy Class
+class Enemy:
+    def __init__(self):
+        self.rect = pygame.Rect(random.randint(0, SCREEN_WIDTH -32), random.randint(0, SCREEN_HEIGHT - 32), 32, 32)
+
+    def move_towards_objective(self, objective):
+        dx = objective.rect.x - self.rect.x
+        dy = objective.rect.y - self.rect.y
+        distance = (dx ** 2 + dy ** 2) ** 0.5
+        if distance > 0:
+            self.rect.x += ENEMY_SPEED * dx / distance
+            self.rect.y += ENEMY_SPEED * dy / distance
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, ENEMY_COLOR, self.rect)
+
+# Bullet Class
+class Bullet:
+    def __init__(self, x, y, target_x, target_y):
+        self.rect = pygame.Rect(x, y, 10, 10)
+        self.target_x = target_x
+        self.target_y = target_y
+        self.angle = math.atan2(target_y - y, target_x - x)
+
+    def move(self):
+        self.rect.x += BULLET_SPEED * math.cos(self.angle)
+        self.rect.y += BULLET_SPEED * math.sin(self.angle)
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, BULLET_COLOR, self.rect)
+
+# Create instances of player, objective, enemies, and bullets
+player = Player()
+objective = Objective()
+enemies = []
+bullets = []
+
+# Game loop
 clock = pygame.time.Clock()
-FPS = 10
+frame_count = 0
 
-screen = pygame.display.set_mode((screenWidth, screenHeight))
-pygame.display.set_caption(title)
-
-#Setting Game Variable
-objectiveHitPoint = 100
-
-#Player Class
-class PLAYER:
-    def __init__(self, x, y):
-        self.x = int(x)
-        self.y = int(y)
-        self.rect = pygame.Rect(self.x, self.y, 32, 32)
-        self.color = (0, 0, 255)
-        self.velX = 0
-        self.velY = 0
-        self.left_pressed = False
-        self.right_pressed = False
-        self.up_pressed = False
-        self.down_pressed = False
-        self.speed = 4
-        
-    def playerDraw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
-        
-    def update(self):
-        self.velX = 0
-        self.velY = 0
-        if self.left_pressed and not self.right_pressed:
-            self.velX = -self.speed
-        if self.right_pressed and not self.left_pressed:
-            self.velX = self.speed
-        if self.up_pressed and not self.down_pressed:
-            self.velY = -self.speed
-        if self.down_pressed and not self.up_pressed:
-            self.velY = self.speed
-        
-        self.x += self.velX
-        self.y += self.velY
-
-        self.rect = pygame.Rect(int(self.x), int(self.y), 32, 32)
-
-#Objective Class
-class OBJECTIVE:
-    
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.health = objectiveHitPoint
-        
-    def objectiveDraw(self, screen):
-        pygame.draw.rect(screen, (255, 32, 28), (self.x, self.y, 50, 50))
-        
-    def update(self):
-        if self.health < 75:
-            pygame.draw.rect(screen, (100, 32, 28), (self.x, self.y, 50, 50))
-
-#Object Initialization
-player = PLAYER(screenWidth//2, screenHeight//2)
-objective = OBJECTIVE(screenWidth//2, screenHeight//2)
-
-#Main Loop
-RUNNING = True
-while RUNNING:
-    
-    #Drawing BACKGROUND
-    screen.fill((12,24,36))
-    #Drawing PLAYER
-    player.playerDraw(screen)
-    #Drawing OBJECTIVE
-    objective.objectiveDraw(screen)
-    
-    #Event Handler
+running = True
+while running:
     for event in pygame.event.get():
-        
-        #PLAYER MOVEMENT
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                player.left_pressed = True
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                player.right_pressed = True
-            if event.key == pygame.K_UP or event.key == pygame.K_w:
-                player.up_pressed = True
-            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                player.down_pressed = True
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                player.left_pressed = False
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                player.right_pressed = False
-            if event.key == pygame.K_UP or event.key == pygame.K_w:
-                player.up_pressed = False
-            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                player.down_pressed = False
-        
-        #Pygame QUIT
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+            running = False
 
-            
-    #Pygame Display Update(s)
-    player.update()
-    objective.update()
+    keys = pygame.key.get_pressed()
+    player.move(keys)
+
+    # Spawn enemies at regular intervals
+    if frame_count % ENEMY_SPAWN_INTERVAL == 0:
+        enemies.append(Enemy())
+
+    # Update enemy positions and check for collisions with the objective
+    for enemy in enemies:
+        enemy.move_towards_objective(objective)
+        if enemy.rect.colliderect(objective.rect):
+            objective.health -= 10
+            enemies.remove(enemy)  # Remove enemy when it reaches the objective
+
+    # Shoot a bullet when the left mouse button is pressed
+    if pygame.mouse.get_pressed()[0]:
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
+        bullets.append(bullet)
+
+    # Update bullet positions and check for collisions with enemies
+    for bullet in bullets:
+        bullet.move()
+        if bullet.rect.y < 0 or bullet.rect.x < 0 or bullet.rect.x > SCREEN_WIDTH or bullet.rect.y > SCREEN_HEIGHT:
+            bullets.remove(bullet)
+        for enemy in enemies:
+            if bullet.rect.colliderect(enemy.rect):
+                bullets.remove(bullet)
+                enemies.remove(enemy)
+                player.score += 1
+
+    # Clear the screen
+    screen.fill(BACKGROUND_COLOR)
+
+    # Draw player, objective, enemies, and bullets
+    player.draw(screen)
+    objective.draw(screen)
+    for enemy in enemies:
+        enemy.draw(screen)
+    for bullet in bullets:
+        bullet.draw(screen)
+
+    # Check for game over condition (objective health <= 0)
+    if objective.health <= 0:
+        running = False
+
+    # Display player score and objective health
+    font = pygame.font.Font(None, 36)
+    score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
+    health_text = font.render(f"Objective Health: {objective.health}", True, (255, 255, 255))
+    screen.blit(score_text, (10, 10))
+    screen.blit(health_text, (10, 50))
+
+    # Update the display
     pygame.display.flip()
-    
-    clock.tick(FPS)
+
+    # Increment frame count
+    frame_count += 1
+
+    # Cap the frame rate
+    clock.tick(60)
+
+# Game over screen
+game_over_font = pygame.font.Font(None, 36)
+game_over_text = game_over_font.render("Game Over", True, (255, 255, 255))
+game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+
+screen.fill(BACKGROUND_COLOR)
+screen.blit(game_over_text, game_over_rect)
+pygame.display.flip()
+
+# Wait for a few seconds before quitting
+pygame.time.delay(3000)
+
+# Quit Pygame
+pygame.quit()
+sys.exit()
