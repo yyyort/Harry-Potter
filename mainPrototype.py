@@ -1,3 +1,5 @@
+# ADDED BORDER FOR ALL RECTs, ADDED NEW CONDITION FOR GAME OVER SCREENs
+
 import pygame, sys, random, math
 
 # Initialize Pygame
@@ -170,8 +172,10 @@ while running:
     for bullet in bullets:
         bullet.draw(screen)
 
-    # Check for game over condition (objective health <= 0)
+    # Check for game over condition (objective health <= 0) or (player(s) bullet count is == 0)
     if objective.health <= 0:
+        running = False
+    if player.bullet_count == 0:
         running = False
 
     # Display player score, objective health, and remaining bullets
@@ -194,11 +198,21 @@ while running:
 
 # Game over screen
 game_over_font = pygame.font.Font(None, 36)
+game_over_font = pygame.font.Font(None, 36)
 game_over_text = game_over_font.render("Game Over", True, (255, 255, 255))
+game_over_no_bullet_text = game_over_font.render("Game Over! You ran out of bullets", True, (255, 255, 255))
 game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+game_over_no_bullet_rect = game_over_no_bullet_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
 
 screen.fill(BACKGROUND_COLOR)
-screen.blit(game_over_text, game_over_rect)
+
+#Game over screen(s)
+if objective.health <= 0:
+    screen.blit(game_over_text, game_over_rect)
+elif player.bullet_count == 0:
+    screen.blit(game_over_no_bullet_text, game_over_no_bullet_rect)
+else:
+    screen.blit(game_over_text, game_over_rect)
 pygame.display.flip()
 
 # Wait for a few seconds before quitting
