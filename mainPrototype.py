@@ -1,7 +1,4 @@
-import pygame
-import sys
-import random
-import math
+import pygame, sys, random, math
 
 # Initialize Pygame
 pygame.init()
@@ -64,7 +61,7 @@ class Objective:
 # Enemy Class
 class Enemy:
     def __init__(self):
-        self.rect = pygame.Rect(random.randint(0, SCREEN_WIDTH -32), random.randint(0, SCREEN_HEIGHT - 32), 75, 75)
+        self.rect = pygame.Rect(random.randint(0, SCREEN_WIDTH -100), random.randint(0, SCREEN_HEIGHT - 100), 75, 75)
 
     def move_towards_objective(self, objective):
         dx = objective.rect.x - self.rect.x
@@ -156,8 +153,8 @@ while running:
     screen.fill(BACKGROUND_COLOR)
 
     # Draw player, objective, enemies, and bullets
-    player.draw(screen)
     objective.draw(screen)
+    player.draw(screen)
     for enemy in enemies:
         enemy.draw(screen)
     for bullet in bullets:
