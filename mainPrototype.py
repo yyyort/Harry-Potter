@@ -14,6 +14,7 @@ BULLET_COLOR = (255, 255, 0)
 PLAYER_SPEED = 5
 ENEMY_SPEED = 2
 ENEMY_SPAWN_INTERVAL = 60  # Number of frames between enemy spawns
+ENEMY_START_SPAWN = 60
 BULLET_SPEED = 8
 MAX_BULLET_COUNT = 10  # Maximum number of bullets the player can carry
 BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
@@ -48,6 +49,9 @@ class Player:
 
     def draw(self, screen):
         pygame.draw.rect(screen, PLAYER_COLOR, self.rect)
+        #Rect Border
+        border_rect = pygame.Rect(self.rect.x - 1, self.rect.y - 1, self.rect.width + 2, self.rect.height + 2)
+        pygame.draw.rect(screen, (0, 0, 0), border_rect, 4)
 
 # Objective Class
 class Objective:
@@ -57,6 +61,9 @@ class Objective:
 
     def draw(self, screen):
         pygame.draw.rect(screen, OBJECTIVE_COLOR, self.rect)
+        #Rect Border
+        border_rect = pygame.Rect(self.rect.x - 1, self.rect.y - 1, self.rect.width + 2, self.rect.height + 2)
+        pygame.draw.rect(screen, (0, 0, 0), border_rect, 4)
 
 # Enemy Class
 class Enemy:
@@ -73,6 +80,9 @@ class Enemy:
 
     def draw(self, screen):
         pygame.draw.rect(screen, ENEMY_COLOR, self.rect)
+        #Rect Border
+        border_rect = pygame.Rect(self.rect.x - 1, self.rect.y - 1, self.rect.width + 2, self.rect.height + 2)
+        pygame.draw.rect(screen, (0, 0, 0), border_rect, 4)
 
 # Bullet Class
 class Bullet:
