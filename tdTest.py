@@ -97,7 +97,9 @@ class Objective:
 #Player Initialization
 player = Player(WIDTH/2, HEIGHT/2)
 objective = Objective(WIDTH // 2, HEIGHT // 2)
-enemy = Enemy(objective)
+
+enemies = [Enemy(objective) for i in range(10)]
+
 
 #Main Loop
 while True:
@@ -128,12 +130,15 @@ while True:
     #Draw
     win.fill((12, 24, 36))  
     objective.draw(win)
-    enemy.draw(win)
+    for enemy in enemies:
+        enemy.draw(win)
+  
     player.draw(win)
 
     #update
     player.update()
-    enemy.update()
+    for enemy in enemies:
+        enemy.update()
     pygame.display.flip()
 
     clock.tick(120)

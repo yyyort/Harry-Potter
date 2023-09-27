@@ -5,9 +5,13 @@ import pygame, sys, random, math
 # Initialize Pygame
 pygame.init()
 
+
 # Constants
-SCREEN_WIDTH = 1920
+""" SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
+ """
+SCREEN_WIDTH = 1366
+SCREEN_HEIGHT = 768
 BACKGROUND_COLOR = (60, 60, 60)
 PLAYER_COLOR = (0, 0, 255)
 OBJECTIVE_COLOR = (255, 255, 255)
@@ -18,10 +22,10 @@ ENEMY_SPEED = 2
 ENEMY_SPAWN_INTERVAL = 60  # Number of frames between enemy spawns
 ENEMY_START_SPAWN = 60
 BULLET_SPEED = 8
-MAX_BULLET_COUNT = 10  # Maximum number of bullets the player can carry
+MAX_BULLET_COUNT = 1000  # Maximum number of bullets the player can carry
 BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
 BULLET_FIRE_DELAY = 5  # Delay in frames between consecutive shots
-OBJECTIVE_HIT_POINTS = 100
+OBJECTIVE_HIT_POINTS = 1000
 
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -111,11 +115,27 @@ bullets = []
 clock = pygame.time.Clock()
 frame_count = 0
 
+
+""" 
+added this to autofire per 1s or 1000ms
+ """
+auto_fire = pygame.USEREVENT + 1
+pygame.time.set_timer(auto_fire, 1000)
+
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        """ added this for initiating auto fire """
+        if event.type == auto_fire:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
+            bullets.append(bullet)
+            player.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
+            player.bullet_count -= 1
+
 
     keys = pygame.key.get_pressed()
     player.move(keys)
