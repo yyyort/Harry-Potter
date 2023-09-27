@@ -1,4 +1,4 @@
-# ADDED BORDER FOR ALL RECTs, ADDED NEW CONDITION FOR GAME OVER SCREENs
+# Movement Border Added
 
 import pygame, sys, random, math
 
@@ -36,15 +36,15 @@ class Player:
         self.bullet_fire_delay = 0
 
     def move(self, keys):
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a] and self.rect.x > 0:
             self.rect.x -= PLAYER_SPEED
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d] and self.rect.x < 1920 - 50:
             self.rect.x += PLAYER_SPEED
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
+        if keys[pygame.K_UP] or keys[pygame.K_w] and self.rect.y > 0:
             self.rect.y -= PLAYER_SPEED
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_s] and self.rect.y < 1080 - 50:
             self.rect.y += PLAYER_SPEED
-
+    
     def update(self):
         if self.bullet_fire_delay > 0:
             self.bullet_fire_delay -= 1
