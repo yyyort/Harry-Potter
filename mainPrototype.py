@@ -1,17 +1,13 @@
-# Movement Border Added
+# Added Player Auto Attack Within Certain range of the enemy
 
 import pygame, sys, random, math
 
 # Initialize Pygame
 pygame.init()
 
-
 # Constants
-""" SCREEN_WIDTH = 1920
+SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
- """
-SCREEN_WIDTH = 1366
-SCREEN_HEIGHT = 768
 BACKGROUND_COLOR = (60, 60, 60)
 PLAYER_COLOR = (0, 0, 255)
 OBJECTIVE_COLOR = (255, 255, 255)
@@ -22,10 +18,11 @@ ENEMY_SPEED = 2
 ENEMY_SPAWN_INTERVAL = 60  # Number of frames between enemy spawns
 ENEMY_START_SPAWN = 60
 BULLET_SPEED = 8
-MAX_BULLET_COUNT = 1000  # Maximum number of bullets the player can carry
+MAX_BULLET_COUNT = 999999  # Maximum number of bullets the player can carry
 BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
-BULLET_FIRE_DELAY = 5  # Delay in frames between consecutive shots
-OBJECTIVE_HIT_POINTS = 1000
+BULLET_FIRE_DELAY = 50  # Delay in frames between consecutive shots
+BULLET_AUTO_ATTACK_RADIUS = 250  # Adjust this radius as needed
+OBJECTIVE_HIT_POINTS = 100
 
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -48,6 +45,20 @@ class Player:
             self.rect.y -= PLAYER_SPEED
         if keys[pygame.K_DOWN] or keys[pygame.K_s] and self.rect.y < 1080 - 50:
             self.rect.y += PLAYER_SPEED
+            
+    def auto_attack(self, enemies):
+        for enemy in enemies:
+            dx = enemy.rect.centerx - self.rect.centerx
+            dy = enemy.rect.centery - self.rect.centery
+            distance = math.sqrt(dx ** 2 + dy ** 2)
+
+            # Check if the enemy is within the auto-attack radius
+            if distance <= BULLET_AUTO_ATTACK_RADIUS:
+                if self.bullet_fire_delay == 0 and self.bullet_count > 0:
+                    bullet = Bullet(self.rect.centerx - 5, self.rect.centery - 5, enemy.rect.centerx, enemy.rect.centery)
+                    bullets.append(bullet)
+                    self.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
+                    self.bullet_count -= 1  # Decrement the bullet count
     
     def update(self):
         if self.bullet_fire_delay > 0:
@@ -115,31 +126,16 @@ bullets = []
 clock = pygame.time.Clock()
 frame_count = 0
 
-
-""" 
-added this to autofire per 1s or 1000ms
- """
-auto_fire = pygame.USEREVENT + 1
-pygame.time.set_timer(auto_fire, 1000)
-
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-        """ added this for initiating auto fire """
-        if event.type == auto_fire:
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
-            bullets.append(bullet)
-            player.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
-            player.bullet_count -= 1
-
-
     keys = pygame.key.get_pressed()
     player.move(keys)
 
+    player.auto_attack(enemies)
     # Spawn enemies at regular intervals
     if frame_count % ENEMY_SPAWN_INTERVAL == 0:
         enemies.append(Enemy())
