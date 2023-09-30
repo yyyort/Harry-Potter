@@ -1,4 +1,4 @@
-# Added Player Auto Attack Within Certain range of the enemy
+Added MENU SCREEN(s) (MENU and GAME OVER)
 
 import pygame, sys, random, math
 
@@ -8,13 +8,14 @@ pygame.init()
 # Constants
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
+GAME_FPS = 120
 BACKGROUND_COLOR = (60, 60, 60)
 PLAYER_COLOR = (0, 0, 255)
 OBJECTIVE_COLOR = (255, 255, 255)
 ENEMY_COLOR = (255, 0, 0)
 BULLET_COLOR = (255, 255, 0)
 PLAYER_SPEED = 5
-ENEMY_SPEED = 2
+ENEMY_SPEED = 10
 ENEMY_SPAWN_INTERVAL = 60  # Number of frames between enemy spawns
 ENEMY_START_SPAWN = 60
 BULLET_SPEED = 8
@@ -23,11 +24,70 @@ BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
 BULLET_FIRE_DELAY = 50  # Delay in frames between consecutive shots
 BULLET_AUTO_ATTACK_RADIUS = 250  # Adjust this radius as needed
 OBJECTIVE_HIT_POINTS = 100
+MENU_BACKGROUND_COLOR = (0, 0, 0)
+MENU_TEXT_COLOR = (255, 255, 255)
+MENU_FONT_SIZE = 48
 
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Defend the Objective")
 
+# Menu Class
+class Menu:
+    def __init__(self):
+        self.play_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 50)
+        self.exit_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50)
+        self.font = pygame.font.Font(None, MENU_FONT_SIZE)
+        
+    def draw(self, screen):
+        screen.fill(MENU_BACKGROUND_COLOR)
+        play_text = self.font.render("PLAY", True, MENU_TEXT_COLOR)
+        exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
+        screen.blit(play_text, (self.play_button.centerx - play_text.get_width() // 2, self.play_button.centery - play_text.get_height() // 2))
+        screen.blit(exit_text, (self.exit_button.centerx - exit_text.get_width() // 2, self.exit_button.centery - exit_text.get_height() // 2))
+        
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.play_button.collidepoint(event.pos):
+                    return "PLAY"
+                elif self.exit_button.collidepoint(event.pos):
+                    pygame.quit()
+                    sys.exit()
+        return None
+
+# Game Over Menu Class
+class GameOverMenu:
+    def __init__(self):
+        self.replay_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 50)
+        self.exit_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50)
+        self.font = pygame.font.Font(None, MENU_FONT_SIZE)
+        
+    def draw(self, screen):
+        screen.fill(MENU_BACKGROUND_COLOR)
+        game_over_text = self.font.render("GAME OVER!", True, MENU_TEXT_COLOR)
+        replay_text = self.font.render("REPLAY", True, MENU_TEXT_COLOR)
+        exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
+        screen.blit(replay_text, (self.replay_button.centerx - replay_text.get_width() // 2, self.replay_button.centery - replay_text.get_height() // 2))
+        screen.blit(exit_text, (self.exit_button.centerx - exit_text.get_width() // 2, self.exit_button.centery - exit_text.get_height() // 2))
+        screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 150))
+        
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.replay_button.collidepoint(event.pos):
+                    return "REPLAY"
+                elif self.exit_button.collidepoint(event.pos):
+                    pygame.quit()
+                    sys.exit()
+        return None
+                
 # Player Class
 class Player:
     def __init__(self):
@@ -116,127 +176,176 @@ class Bullet:
     def draw(self, screen):
         pygame.draw.rect(screen, BULLET_COLOR, self.rect)
 
-# Create instances of player, objective, enemies, and bullets
-player = Player()
-objective = Objective()
-enemies = []
-bullets = []
+# Create instances for game menu
+menu = Menu()
+
 
 # Game loop
 clock = pygame.time.Clock()
 frame_count = 0
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+running = False
+game_over = False # Game over flag
+game_over_menu = None
+while True:
+    if not running and not game_over:
+        menu_choice = None
+        while menu_choice is None:
+            menu.draw(screen)
+            pygame.display.flip()
+            menu_choice = menu.handle_events()
+        # Game start
+        if menu_choice == "PLAY":
+            running = True
+        # Create instances of player, objective, enemies, and bullets
+            player = Player()
+            objective = Objective()
+            enemies = []
+            bullets = []
+    
+    if running:
+    # Game Loop
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                game_over = True
+
+        keys = pygame.key.get_pressed()
+        player.move(keys)
+
+        player.auto_attack(enemies)
+        # Spawn enemies at regular intervals
+        if frame_count % ENEMY_SPAWN_INTERVAL == 0:
+            enemies.append(Enemy())
+
+        # Update enemy positions and check for collisions with the objective
+        for enemy in enemies:
+            enemy.move_towards_objective(objective)
+            if enemy.rect.colliderect(objective.rect):
+                objective.health -= 10
+                enemies.remove(enemy)  # Remove enemy when it reaches the objective
+
+        # Check for player shooting
+        if pygame.mouse.get_pressed()[0] and player.bullet_count > 0:
+            if player.bullet_fire_delay == 0:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
+                bullets.append(bullet)
+                player.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
+                player.bullet_count -= 1  # Decrement the bullet count
+
+        # Update bullet fire delay
+        if player.bullet_fire_delay > 0:
+            player.bullet_fire_delay -= 1
+
+
+        # Update bullet positions and check for collisions with enemies
+        for bullet in bullets:
+            bullet.move()
+            if bullet.rect.y < 0 or bullet.rect.x < 0 or bullet.rect.x > SCREEN_WIDTH or bullet.rect.y > SCREEN_HEIGHT:
+                bullets.remove(bullet)
+            for enemy in enemies:
+                if bullet.rect.colliderect(enemy.rect):
+                    bullets.remove(bullet)
+                    enemies.remove(enemy)
+                    player.score += 1
+                    player.bullet_count += BULLET_RELOAD_AMOUNT  # Gain additional bullets
+
+        # Cap the bullet count to the maximum value
+        if player.bullet_count > MAX_BULLET_COUNT:
+            player.bullet_count = MAX_BULLET_COUNT
+
+        # Game over condition
+        if objective.health <= 0 or player.bullet_count == 0:
+            running = False
+            game_over = True
+        
+        # Clear the screen
+        screen.fill(BACKGROUND_COLOR)
+
+        # Draw player, objective, enemies, and bullets
+        objective.draw(screen)
+        #
+        for bullet in bullets:
+            bullet.draw(screen)
+        #
+        player.draw(screen)
+        #
+        for enemy in enemies:
+            enemy.draw(screen)
+
+        # Check for game over condition (objective health <= 0) or (player(s) bullet count is == 0)
+        if objective.health <= 0:
+            running = False
+        if player.bullet_count == 0:
             running = False
 
-    keys = pygame.key.get_pressed()
-    player.move(keys)
+        # Display player score, objective health, and remaining bullets
+        font = pygame.font.Font(None, 36)
+        score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
+        health_text = font.render(f"Objective Health: {objective.health}", True, (255, 255, 255))
+        bullet_text = font.render(f"Bullets: {player.bullet_count}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))
+        screen.blit(health_text, (10, 50))
+        screen.blit(bullet_text, (10, 90))
 
-    player.auto_attack(enemies)
-    # Spawn enemies at regular intervals
-    if frame_count % ENEMY_SPAWN_INTERVAL == 0:
-        enemies.append(Enemy())
+        # Update the display
+        pygame.display.flip()
 
-    # Update enemy positions and check for collisions with the objective
-    for enemy in enemies:
-        enemy.move_towards_objective(objective)
-        if enemy.rect.colliderect(objective.rect):
-            objective.health -= 10
-            enemies.remove(enemy)  # Remove enemy when it reaches the objective
+        # Increment frame count
+        frame_count += 1
 
-    # Check for player shooting
-    if pygame.mouse.get_pressed()[0] and player.bullet_count > 0:
-        if player.bullet_fire_delay == 0:
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
-            bullets.append(bullet)
-            player.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
-            player.bullet_count -= 1  # Decrement the bullet count
+        # Cap the frame rate
+        clock.tick(GAME_FPS)
 
-    # Update bullet fire delay
-    if player.bullet_fire_delay > 0:
-        player.bullet_fire_delay -= 1
+    if game_over:
+        
+        if game_over_menu is None:
+            game_over_menu = GameOverMenu()
+            
+        game_over_choice = None
+        while game_over_choice is None:
+            game_over_menu.draw(screen)
+            pygame.display.flip()
+            game_over_choice = game_over_menu.handle_events()
+            
+        if game_over_choice == "REPLAY":
+            game_over = False
+            game_over_menu = None # Will reset game
 
+            # Reset player's score, bullet count, and other game variables
+            player.score = 0
+            player.bullet_count = MAX_BULLET_COUNT
+            player.bullet_fire_delay = 0
+            objective.health = OBJECTIVE_HIT_POINTS
+            enemies.clear()
+            bullets.clear()
+            
+        """ # Game over screen
+        game_over_font = pygame.font.Font(None, 36)
+        game_over_font = pygame.font.Font(None, 36)
+        game_over_text = game_over_font.render("Game Over", True, (255, 255, 255))
+        game_over_no_bullet_text = game_over_font.render("Game Over! You ran out of bullets", True, (255, 255, 255))
+        game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        game_over_no_bullet_rect = game_over_no_bullet_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
 
-    # Update bullet positions and check for collisions with enemies
-    for bullet in bullets:
-        bullet.move()
-        if bullet.rect.y < 0 or bullet.rect.x < 0 or bullet.rect.x > SCREEN_WIDTH or bullet.rect.y > SCREEN_HEIGHT:
-            bullets.remove(bullet)
-        for enemy in enemies:
-            if bullet.rect.colliderect(enemy.rect):
-                bullets.remove(bullet)
-                enemies.remove(enemy)
-                player.score += 1
-                player.bullet_count += BULLET_RELOAD_AMOUNT  # Gain additional bullets
+        screen.fill(BACKGROUND_COLOR)
 
-    # Cap the bullet count to the maximum value
-    if player.bullet_count > MAX_BULLET_COUNT:
-        player.bullet_count = MAX_BULLET_COUNT
+        #Game over screen(s)
+        if objective.health <= 0:
+            screen.blit(game_over_text, game_over_rect)
+        elif player.bullet_count == 0:
+            screen.blit(game_over_no_bullet_text, game_over_no_bullet_rect)
+        else:
+            screen.blit(game_over_text, game_over_rect)
+        pygame.display.flip()
 
-    # Clear the screen
-    screen.fill(BACKGROUND_COLOR)
+        # Wait for a few seconds before quitting
+        pygame.time.delay(3000)
+        
+        # Quit Pygame
+        pygame.quit()
+        sys.exit()"""
 
-    # Draw player, objective, enemies, and bullets
-    objective.draw(screen)
-    #
-    for bullet in bullets:
-        bullet.draw(screen)
-    #
-    player.draw(screen)
-    #
-    for enemy in enemies:
-        enemy.draw(screen)
-
-    # Check for game over condition (objective health <= 0) or (player(s) bullet count is == 0)
-    if objective.health <= 0:
-        running = False
-    if player.bullet_count == 0:
-        running = False
-
-    # Display player score, objective health, and remaining bullets
-    font = pygame.font.Font(None, 36)
-    score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
-    health_text = font.render(f"Objective Health: {objective.health}", True, (255, 255, 255))
-    bullet_text = font.render(f"Bullets: {player.bullet_count}", True, (255, 255, 255))
-    screen.blit(score_text, (10, 10))
-    screen.blit(health_text, (10, 50))
-    screen.blit(bullet_text, (10, 90))
-
-    # Update the display
     pygame.display.flip()
-
-    # Increment frame count
-    frame_count += 1
-
-    # Cap the frame rate
     clock.tick(60)
-
-# Game over screen
-game_over_font = pygame.font.Font(None, 36)
-game_over_font = pygame.font.Font(None, 36)
-game_over_text = game_over_font.render("Game Over", True, (255, 255, 255))
-game_over_no_bullet_text = game_over_font.render("Game Over! You ran out of bullets", True, (255, 255, 255))
-game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-game_over_no_bullet_rect = game_over_no_bullet_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-
-screen.fill(BACKGROUND_COLOR)
-
-#Game over screen(s)
-if objective.health <= 0:
-    screen.blit(game_over_text, game_over_rect)
-elif player.bullet_count == 0:
-    screen.blit(game_over_no_bullet_text, game_over_no_bullet_rect)
-else:
-    screen.blit(game_over_text, game_over_rect)
-pygame.display.flip()
-
-# Wait for a few seconds before quitting
-pygame.time.delay(3000)
-
-# Quit Pygame
-pygame.quit()
-sys.exit()
