@@ -1,3 +1,8 @@
+# LATEST CODE
+# LATEST CODE
+# LATEST CODE
+# LATEST CODE
+# LATEST CODE
 import pygame, sys, random, math
 
 # Initialize Pygame
@@ -14,12 +19,12 @@ ENEMY_COLOR = (255, 0, 0)
 BULLET_COLOR = (255, 255, 0)
 PLAYER_SPEED = 5
 ENEMY_SPEED = 5
-ENEMY_SPAWN_INTERVAL = 30  # Number of frames between enemy spawns
+ENEMY_SPAWN_INTERVAL = 55  # Number of frames between enemy spawns
 ENEMY_START_SPAWN = 60
 BULLET_SPEED = 8
-MAX_BULLET_COUNT = 999999  # Maximum number of bullets the player can carry
+MAX_BULLET_COUNT = 10  # Maximum number of bullets the player can carry
 BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
-BULLET_FIRE_DELAY = 30  # Delay in frames between consecutive shots
+BULLET_FIRE_DELAY = 60  # Delay in frames between consecutive shots
 BULLET_AUTO_ATTACK_RADIUS = 250  # Adjust this radius as needed
 OBJECTIVE_HIT_POINTS = 100
 MENU_BACKGROUND_COLOR = (0, 0, 0)
