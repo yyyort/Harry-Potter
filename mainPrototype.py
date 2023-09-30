@@ -182,11 +182,14 @@ while running:
 
     # Draw player, objective, enemies, and bullets
     objective.draw(screen)
-    player.draw(screen)
-    for enemy in enemies:
-        enemy.draw(screen)
+    #
     for bullet in bullets:
         bullet.draw(screen)
+    #
+    player.draw(screen)
+    #
+    for enemy in enemies:
+        enemy.draw(screen)
 
     # Check for game over condition (objective health <= 0) or (player(s) bullet count is == 0)
     if objective.health <= 0:
