@@ -1,13 +1,11 @@
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
-# LATEST CODE
+# LATEST Sprites, Movement Border, Welcome Title Screen, Diffulty Slider Increment
+
+# Game Completion 75%
+
+# TODO
+
+# Polishing, Sound Effects, Difficulty Slider(Done), Game Timer, Com Vis Movement, Additional Sprites, Background
+
 import pygame, sys, random, math
 
 # Initialize Pygame
@@ -24,17 +22,22 @@ ENEMY_COLOR = (255, 0, 0)
 BULLET_COLOR = (255, 255, 0)
 PLAYER_SPEED = 5
 ENEMY_SPEED = 5
-ENEMY_SPAWN_INTERVAL = 55  # Number of frames between enemy spawns
-ENEMY_START_SPAWN = 10
+ENEMY_SPAWN_INTERVAL = 60  # Number of frames between enemy spawns
+ENEMY_SPAWN_DECREASE = 3 # Increases the spawnrate of the enemies
+ENEMY_SPAWN_DECREASE_INTERVAL = 10000 # 10 seconds in milliseconds
+ENEMY_START_SPAWN = 25  # The delay of the spawning phase of the enemy
+ENEMY_SPEED_INCREASE = 3  # Speed increase after 10 seconds
+ENEMY_SPEED_INCREASE_INTERVAL = 10000  # 10 seconds in milliseconds
 BULLET_SPEED = 8
-MAX_BULLET_COUNT = 10  # Maximum number of bullets the player can carry
+MAX_BULLET_COUNT = 9999 # Maximum number of bullets the player can carry
 BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
-BULLET_FIRE_DELAY = 60  # Delay in frames between consecutive shots
+BULLET_FIRE_DELAY = 45 # Delay in frames between consecutive shots
 BULLET_AUTO_ATTACK_RADIUS = 250  # Adjust this radius as needed
 OBJECTIVE_HIT_POINTS = 100
 MENU_BACKGROUND_COLOR = (0, 0, 0)
 MENU_TEXT_COLOR = (255, 255, 255)
 MENU_FONT_SIZE = 48
+ABLE_TO_ATTACK_DELAY = 10
 
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -52,7 +55,7 @@ wandleft =  pygame.image.load("img/entity/player/wleft.png").convert_alpha()
 wandright = pygame.image.load("img/entity/player/wright.png").convert_alpha()
 
     # projectile
-projectile = pygame.image.load("img/entity/player/projectile.png").convert_alpha()
+projectile = pygame.image.load("img/entity/player/magic.png").convert_alpha()
 
     # objective
 stone = pygame.image.load("img/entity/player/stone.png").convert_alpha()
@@ -85,14 +88,17 @@ h1 = pygame.image.load("img/entity/player/hp2.png").convert_alpha()
 # Menu Class
 class Menu:
     def __init__(self):
+        self.welcome_text_title = pygame.Rect(SCREEN_WIDTH // 2 - 90, SCREEN_HEIGHT // 2 - 150, 200, 50)
         self.play_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 50)
         self.exit_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50)
         self.font = pygame.font.Font(None, MENU_FONT_SIZE)
         
     def draw(self, screen):
         screen.fill(MENU_BACKGROUND_COLOR)
+        welcome_text = self.font.render("HARRY POTTER TOWER DEFENSE", True, MENU_TEXT_COLOR)
         play_text = self.font.render("PLAY", True, MENU_TEXT_COLOR)
         exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
+        screen.blit(welcome_text, (self.welcome_text_title.centerx - welcome_text.get_width() // 2, self.welcome_text_title.centery - welcome_text.get_height() // 2))
         screen.blit(play_text, (self.play_button.centerx - play_text.get_width() // 2, self.play_button.centery - play_text.get_height() // 2))
         screen.blit(exit_text, (self.exit_button.centerx - exit_text.get_width() // 2, self.exit_button.centery - exit_text.get_height() // 2))
         
@@ -366,7 +372,7 @@ class Enemy:
 
 class Bullet:
     def __init__(self, x, y, target_x, target_y):
-        self.image = pygame.transform.scale(projectile, (25, 25))
+        self.image = pygame.transform.scale(projectile, (10, 10))
         self.rect = pygame.Rect(x, y, 10, 10)
         self.target_x = target_x
         self.target_y = target_y
@@ -387,7 +393,10 @@ menu = Menu()
 clock = pygame.time.Clock()
 frame_count = 0
 
+start_time = pygame.time.get_ticks()  # Record the start time when the game starts
+is_attack = False
 running = False
+game_running = False
 game_over = False # Game over flag
 game_over_menu = None
 while True:
@@ -400,6 +409,8 @@ while True:
         # Game start
         if menu_choice == "PLAY":
             running = True
+            is_attack = True
+            game_running = True
         # Create instances of player, objective, enemies, and bullets
             player = Player(wandleft, wandright)
             objective = Objective()
@@ -440,13 +451,17 @@ while True:
                 enemies.remove(enemy)
 
         # Check for player shooting
-        if pygame.mouse.get_pressed()[0] and player.bullet_count > 0:
-            if player.bullet_fire_delay == 0:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
-                bullets.append(bullet)
-                player.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
-                player.bullet_count -= 1  # Decrement the bullet count
+        
+        if is_attack is True:
+            ABLE_TO_ATTACK_DELAY -= 1
+            if ABLE_TO_ATTACK_DELAY <= 0:
+                if pygame.mouse.get_pressed()[0] and player.bullet_count > 0:
+                    if player.bullet_fire_delay == 0:
+                        mouse_x, mouse_y = pygame.mouse.get_pos()
+                        bullet = Bullet(player.rect.centerx - 5, player.rect.centery - 5, mouse_x, mouse_y)
+                        bullets.append(bullet)
+                        player.bullet_fire_delay = BULLET_FIRE_DELAY  # Set the firing delay
+                        player.bullet_count -= 1  # Decrement the bullet count
 
         # Update bullet fire delay
         if player.bullet_fire_delay > 0:
@@ -473,6 +488,23 @@ while True:
         # Cap the bullet count to the maximum value
         if player.bullet_count > MAX_BULLET_COUNT:
             player.bullet_count = MAX_BULLET_COUNT
+
+        if game_running:
+            # Check if 10 seconds have passed and increase enemy speed
+            elapsed_time = pygame.time.get_ticks() - start_time
+            if elapsed_time >= ENEMY_SPEED_INCREASE_INTERVAL:
+                ENEMY_SPEED += ENEMY_SPEED_INCREASE
+                # Reset the start time to the current time
+                start_time = pygame.time.get_ticks()
+                
+            # Check if 10 seconds have passed and increase enemy spawn rate
+            elapsed_time = pygame.time.get_ticks() - start_time
+            if elapsed_time >= ENEMY_SPAWN_DECREASE_INTERVAL:
+                ENEMY_SPAWN_INTERVAL -= ENEMY_SPAWN_DECREASE
+                if ENEMY_SPAWN_INTERVAL <= 5:
+                    ENEMY_SPAWN_DECREASE = 0
+                # Reset the start time to the current time
+                start_time = pygame.time.get_ticks()
 
         # Game over condition
         if objective.health <= 0 or player.bullet_count == 0:
@@ -502,14 +534,14 @@ while True:
         if player.bullet_count == 0:
             running = False
 
-        # Display player score, objective health, and remaining bullets
+        ## Display player score, objective health, and remaining bullets
         font = pygame.font.Font(None, 36)
         score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
-        health_text = font.render(f"Objective Health: {objective.health}", True, (255, 255, 255))
+        #health_text = font.render(f"Objective Health: {objective.health}", True, (255, 255, 255))
         bullet_text = font.render(f"Bullets: {player.bullet_count}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
-        screen.blit(health_text, (10, 50))
-        screen.blit(bullet_text, (10, 90))
+        #screen.blit(health_text, (10, 50))
+        screen.blit(bullet_text, (10, 50))
 
         # Update the display
         pygame.display.flip()
@@ -543,7 +575,7 @@ while True:
             enemies.clear()
             bullets.clear()
             
-        """ # Game over screen
+        """# Game over screen
         game_over_font = pygame.font.Font(None, 36)
         game_over_font = pygame.font.Font(None, 36)
         game_over_text = game_over_font.render("Game Over", True, (255, 255, 255))
