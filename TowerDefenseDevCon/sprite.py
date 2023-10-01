@@ -175,7 +175,7 @@ class Player:
         self.gun = Gun(self.rect, wandleft, wandright)
 
     def comvis(self, x, y):
-        self.rec.x = x
+        self.rect.x = x
         self.rect.y = y
         pass
 
@@ -465,9 +465,11 @@ while True:
             else:
                 print(landmarks)
                 gesture = "Open Hand"
-
+            
+            comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
+            comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
              #comvis
-            player.comvis(x=landmarks[0] * SCREEN_WIDTH, y=landmarks[1] * SCREEN_HEIGHT)
+            player.comvis(comvis_x * SCREEN_WIDTH, comvis_y * SCREEN_HEIGHT)
 
         cv2.putText(frame, f'Gesture: {gesture}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         
