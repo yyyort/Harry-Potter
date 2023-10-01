@@ -10,13 +10,32 @@
 # LATEST CODE
 import pygame, sys, random, math
 
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+import cv2
 
 # Initialize Pygame
 pygame.init()
 
+#opencv setup
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands()
+
+thumbs_up_template = [4, 3, 2]
+
+cap = cv2.VideoCapture(0)
+
+if not cap.isOpened():
+    print("Error: Could not open camera.")
+    exit()
+
 # Constants
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
+""" SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1080 """
+
+SCREEN_WIDTH = 1366
+SCREEN_HEIGHT = 768
 GAME_FPS = 120
 BACKGROUND_COLOR = (60, 60, 60)
 PLAYER_COLOR = (0, 0, 255)
@@ -154,6 +173,11 @@ class Player:
         self.bullet_count = MAX_BULLET_COUNT
         self.bullet_fire_delay = 0
         self.gun = Gun(self.rect, wandleft, wandright)
+
+    def comvis(self, x, y):
+        self.rec.x = x
+        self.rect.y = y
+        pass
 
     def move(self, keys):
         
@@ -406,8 +430,58 @@ while True:
             objective = Objective()
             enemies = []
             bullets = []
+
+
+    #opencv
+    ret, frame = cap.read()
+
+    if not ret:
+        print("Error: Could not read frame.")
+        break
+
+    # Convert the frame to RGB format (MediaPipe requires RGB input)
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    # Process the frame using the Hands model
+    results = hands.process(frame_rgb)
+    
+    gesture = None
+
+    # Draw hand landmarks on the frame if hands are detected
+    if results.multi_hand_landmarks:
+        for landmarks in results.multi_hand_landmarks:
+            mp.solutions.drawing_utils.draw_landmarks(
+                frame, landmarks, mp_hands.HAND_CONNECTIONS)
+            #if results:  # Add your hand gesture detection logic here
+            thumb_landmarks = [landmarks.landmark[i] for i in thumbs_up_template]
+
+            # Calculate the Euclidean distances between the thumb landmarks
+            distances = [((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5 for a, b in zip(thumb_landmarks, thumb_landmarks[1:])]
+
+            # Define a threshold for the distances
+            if all(lm.y < landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y for lm in landmarks.landmark):
+                print(landmarks)
+                gesture = "Fist"
+            else:
+                print(landmarks)
+                gesture = "Open Hand"
+
+             #comvis
+            player.comvis(x=landmarks[0] * SCREEN_WIDTH, y=landmarks[1] * SCREEN_HEIGHT)
+
+        cv2.putText(frame, f'Gesture: {gesture}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        
+    # Display the frame in a window
+    cv2.imshow("Camera Preview", frame)
+
+    # Exit the loop when the user presses the 'q' key
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+    #opencv end
     
     if running:
+       
+
         # Game Loop
         
         for event in pygame.event.get():
@@ -572,3 +646,6 @@ while True:
 
     pygame.display.flip()
     clock.tick(60)
+
+cap.release()
+cv2.destroyAllWindows()
