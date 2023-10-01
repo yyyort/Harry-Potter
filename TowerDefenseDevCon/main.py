@@ -1,12 +1,12 @@
-# LATEST Sprites, Movement Border, Welcome Title Screen, Diffulty Slider Increment
+# LATEST Sprites, Movement Border, Welcome Title Screen, Diffulty Slider Increment, Game Timer
 
 # Game Completion 75%
 
 # TODO
 
-# Polishing, Sound Effects, Difficulty Slider(Done), Game Timer, Com Vis Movement, Additional Sprites, Background
+# Polishing, Sound Effects, Difficulty Slider(Done), Game Timer(Done), Com Vis Movement(Done - Need Polshing), Additional Sprites, Background
 
-import pygame, sys, random, math
+import pygame, sys, random, math, time
 
 import mediapipe as mp
 from mediapipe.tasks import python
@@ -46,9 +46,9 @@ ENEMY_COLOR = (255, 0, 0)
 BULLET_COLOR = (255, 255, 0)
 PLAYER_SPEED = 10
 ENEMY_SPEED = 10
-ENEMY_SPAWN_INTERVAL = 60  # Number of frames between enemy spawns
-ENEMY_SPAWN_DECREASE = 10 # Increases the spawnrate of the enemies
-ENEMY_SPAWN_DECREASE_INTERVAL = 10000 # 10 seconds in milliseconds
+ENEMY_SPAWN_INTERVAL = 65  # Number of frames between enemy spawns
+ENEMY_SPAWN_DECREASE = 5 # Increases the spawnrate of the enemies
+ENEMY_SPAWN_DECREASE_INTERVAL = 5000 # 5 seconds in milliseconds
 ENEMY_START_SPAWN = 5  # The delay of the spawning phase of the enemy
 ENEMY_SPEED_INCREASE = 3  # Speed increase after 10 seconds
 ENEMY_SPEED_INCREASE_INTERVAL = 10000  # 10 seconds in milliseconds
@@ -420,7 +420,42 @@ class Bullet:
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        
+
+game_running = False
+
+# Game Timer Class
+class Timer:
+    def __init__(self):
+        self.start_time = 0
+        self.font = pygame.font.Font(None, 36)
+        self.elapsed_time = 0
+        self.running = False  # Variable to track whether the timer is running or not
+
+    def start(self):
+        self.start_time = time.time()
+        self.running = True
+
+    def stop(self):
+        self.elapsed_time += time.time() - self.start_time
+        self.running = False
+
+    def reset(self):
+        self.elapsed_time = 0
+        self.running = False
+
+    def update(self):
+        if self.running:
+            current_time = time.time()
+            self.elapsed_time = current_time - self.start_time
+
+    def draw(self, screen):
+        if self.running:
+            minutes = int(self.elapsed_time // 60)
+            seconds = int(self.elapsed_time % 60)
+            time_text = f"Time: {minutes:02d}:{seconds:02d}"
+            text_surface = self.font.render(time_text, True, (255, 255, 255))
+            screen.blit(text_surface, (10, SCREEN_HEIGHT - 40))
+
 # Create instances for game menu
 menu = Menu()
 
@@ -429,10 +464,11 @@ menu = Menu()
 clock = pygame.time.Clock()
 frame_count = 0
 
+game_timer = Timer()
+
 start_time = pygame.time.get_ticks()  # Record the start time when the game starts
 is_attack = False
 running = False
-game_running = False
 game_over = False # Game over flag
 game_over_menu = None
 while True:
@@ -447,6 +483,9 @@ while True:
             running = True
             is_attack = True
             game_running = True
+            time_start = True
+            game_timer.start()  # Start the game timer when the player clicks "PLAY"
+
         # Create instances of player, objective, enemies, and bullets
             player = Player(wandleft, wandright)
             objective = Objective()
@@ -504,6 +543,11 @@ while True:
     
     if running:
         # Game Loop
+        
+         # Update the game timer when the game is actively running
+        if game_running is True:
+            game_timer.update()
+
         
         # Process the frame using the Hands model
         results = hands.process(frame_rgb)
@@ -637,6 +681,10 @@ while True:
         objective.draw(screen)
         player.draw(screen)
         
+        
+        # Draw the game timer
+        game_timer.draw(screen)
+        
         for bullet in bullets:
             bullet.draw(screen)
 
@@ -645,6 +693,8 @@ while True:
             running = False
         if player.bullet_count == 0:
             running = False
+
+
 
         ## Display player score, objective health, and remaining bullets
         font = pygame.font.Font(None, 36)
@@ -666,6 +716,9 @@ while True:
 
     if game_over:
         
+        # Stop the game timer when the game is over
+        game_timer.stop()
+        
         if game_over_menu is None:
             game_over_menu = GameOverMenu()
             
@@ -686,6 +739,7 @@ while True:
             objective.health = OBJECTIVE_HIT_POINTS
             enemies.clear()
             bullets.clear()
+            game_timer.reset()
             
         """# Game over screen
         game_over_font = pygame.font.Font(None, 36)
