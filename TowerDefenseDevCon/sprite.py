@@ -10,6 +10,7 @@
 # LATEST CODE
 import pygame, sys, random, math
 
+
 # Initialize Pygame
 pygame.init()
 
