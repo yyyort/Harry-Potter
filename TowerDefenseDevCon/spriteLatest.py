@@ -431,8 +431,7 @@ class Timer:
 
 # Game SFX
     # Background SFX
-background_music = pygame.mixer.music.load("sfx/Harry Potter/Background_Music.mp3")
-background_music_player = pygame.mixer.music.play(-1)
+background_music = pygame.mixer.Sound("sfx/Harry Potter/Background_Music.mp3")
 
     # Player Attack SFX
 player_attack = pygame.mixer.Sound("sfx/Harry Potter/Attack.mp3")
@@ -460,6 +459,9 @@ is_attack = False
 running = False
 game_over = False # Game over flag
 game_over_menu = None
+
+background_music.play()
+
 while True:
     if not running and not game_over:
         menu_choice = None
@@ -532,7 +534,6 @@ while True:
     
     if running:
         # Game Loop
-        
          # Update the game timer when the game is actively running
         if game_running is True:
             game_timer.update()
@@ -661,8 +662,6 @@ while True:
 
         # Draw player, objective, enemies, and bullets
         #
-        #
-        #
             
         for enemy in enemies:
             enemy.draw(screen)
@@ -705,7 +704,7 @@ while True:
 
     if game_over:
         
-        background_music_stop = pygame.mixer.music.stop()
+        background_music.stop()
         
         # Stop the game timer when the game is over
         game_timer.stop()
@@ -723,11 +722,15 @@ while True:
             game_over = False
             game_over_menu = None # Will reset game
 
+            background_music.play()
             # Reset player's score, bullet count, and other game variables
+            
             player.score = 0
             player.bullet_count = MAX_BULLET_COUNT
             player.bullet_fire_delay = 0
             objective.health = OBJECTIVE_HIT_POINTS
+            ENEMY_SPEED = 10
+            ENEMY_SPAWN_INTERVAL = 30
             enemies.clear()
             bullets.clear()
             game_timer.reset()
