@@ -28,13 +28,13 @@ if not cap.isOpened():
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
     #   Pygame Framerate
-GAME_FPS = 30
+GAME_FPS = 60
     #   Pygame Background Color
 BACKGROUND_COLOR = (60, 60, 60)
     #   Player Movement and Enemy Movement Speed
 PLAYER_SPEED = 10   #   Default 10
 ENEMY_SPEED = 10    #   Default 10
-    #   Enemy Spawn Interval Constant(s)
+    #   Interval Constant(s)
 ENEMY_SPAWN_INTERVAL = 30   #   Frames between enemy spawn (Default 30)
 ENEMY_SPAWN_DECREASE = 2    #   Increasing enemy spawn rate (Default 2)
 ENEMY_SPAWN_DECREASE_INTERVAL = 5000    #   5 seconds (milliseconds)
@@ -45,9 +45,15 @@ ENEMY_SPEED_INCREASE = 3  # Speed increase after 10 seconds
 ENEMY_SPEED_INCREASE_INTERVAL = 10000  # 10 seconds in milliseconds
 
 BULLET_SPEED = 16 * 2
+BULLET_SPEED_INCREASE = 8
+BULLET_SPEED_INCREASE_INTERVAL = 5000
+
+BULLET_FIRE_DELAY = 30 # Delay in frames between consecutive shots
+BULLET_FIRE_DELAY_INCREASE = 2
+BULLET_FIRE_DELAY_INCREASE_INTERVAL = 5000
+
 MAX_BULLET_COUNT = 9999 # Maximum number of bullets the player can carry
 BULLET_RELOAD_AMOUNT = 2  # Number of additional bullets gained per enemy kill
-BULLET_FIRE_DELAY = 30 # Delay in frames between consecutive shots
 BULLET_AUTO_ATTACK_RADIUS = 250  # Adjust this radius as needed
 
 OBJECTIVE_HIT_POINTS = 100
@@ -160,9 +166,11 @@ class GameOverMenu:
         game_over_text = self.font.render("GAME OVER!", True, MENU_TEXT_COLOR)
         replay_text = self.font.render("REPLAY", True, MENU_TEXT_COLOR)
         exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
+        player_score_text = self.font.render (f"Your Score: {player.score}", True, MENU_TEXT_COLOR)
         screen.blit(replay_text, (self.replay_button.centerx - replay_text.get_width() // 2, self.replay_button.centery - replay_text.get_height() // 2))
         screen.blit(exit_text, (self.exit_button.centerx - exit_text.get_width() // 2, self.exit_button.centery - exit_text.get_height() // 2))
         screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 150))
+        screen.blit(player_score_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 150))
         
     def handle_events(self):
         for event in pygame.event.get():
@@ -198,10 +206,10 @@ class Player:
 
     def move(self, keys, cv_x, cv_y):
         # Calculate the boundaries for player movement
-        min_x = SCREEN_WIDTH // 2 - 250
-        max_x = SCREEN_WIDTH // 2 + 250
-        min_y = SCREEN_HEIGHT // 2 - 250
-        max_y = SCREEN_HEIGHT // 2 + 250
+        min_x = 0
+        max_x = SCREEN_WIDTH - 50
+        min_y = 100
+        max_y = SCREEN_HEIGHT - 75
 
         # Calculate the new position based on computer vision input
         new_x = self.rect.x + cv_x
@@ -247,6 +255,8 @@ class Player:
                     
                     # Play the player attack SFX
                     player_attack_sfx.play()
+    
+    
     
     def update(self):
         self.move(keys, cv_x, cv_y)
@@ -479,6 +489,8 @@ while True:
     
      #opencv
     ret, frame = cap.read()
+    
+    frame = cv2.flip(frame, 1)
 
     if not ret:
         print("Error: Could not read frame.")
@@ -502,21 +514,11 @@ while True:
 
             # Calculate the Euclidean distances between the thumb landmarks
             distances = [((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5 for a, b in zip(thumb_landmarks, thumb_landmarks[1:])]
-
-            # Define a threshold for the distances
-            if all(lm.y < landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y for lm in landmarks.landmark):
-                print(landmarks)
-                gesture = "Fist"
-            else:
-                print(landmarks)
-                gesture = "Open Hand"
             
             comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
             comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
              #comvis
             player.comvis(comvis_x * SCREEN_WIDTH, comvis_y * SCREEN_HEIGHT)
-
-        cv2.putText(frame, f'Gesture: {gesture}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         
     # Display the frame in a window
     cv2.imshow("Camera Preview", frame)
@@ -623,7 +625,8 @@ while True:
 
         # Remove bullets that hit enemies or went out of bounds
         for bullet in bullets_to_remove:
-            bullets.remove(bullet)
+            if bullet in bullets:
+                bullets.remove(bullet)
 
         # Cap the bullet count to the maximum value
         if player.bullet_count > MAX_BULLET_COUNT:
@@ -637,8 +640,25 @@ while True:
                 # Reset the start time to the current time
                 start_time = pygame.time.get_ticks()
                 
+        if game_running:
+            # Check if 10 seconds have passed and increase bullet speed
+            if elapsed_time >= BULLET_SPEED_INCREASE_INTERVAL:
+                BULLET_SPEED += BULLET_SPEED_INCREASE
+                if BULLET_SPEED >= 72:
+                    BULLET_SPEED_INCREASE = 0
+                # Reset the start time to the current time
+                start_time = pygame.time.get_ticks()
+                
+        if game_running:
+            # Check if 10 seconds have passed and increase fire rate
+            if elapsed_time >= BULLET_FIRE_DELAY_INCREASE_INTERVAL:
+                BULLET_FIRE_DELAY -= BULLET_FIRE_DELAY_INCREASE
+                if BULLET_FIRE_DELAY <= 15:
+                    BULLET_FIRE_DELAY_INCREASE = 0
+                # Reset the start time to the current time
+                start_time = pygame.time.get_ticks()
+                
             # Check if 10 seconds have passed and increase enemy spawn rate
-            elapsed_time = pygame.time.get_ticks() - start_time
             if elapsed_time >= ENEMY_SPAWN_DECREASE_INTERVAL:
                 ENEMY_SPAWN_INTERVAL -= ENEMY_SPAWN_DECREASE
                 if ENEMY_SPAWN_INTERVAL <= 5:
@@ -675,6 +695,11 @@ while True:
         if player.bullet_count == 0:
             running = False
 
+        font = pygame.font.Font(None, 36)
+        score_text_menu = font.render(f"Your Score: {player.score}", True, (255, 255, 255))
+        score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
+        screen.blit(score_text, (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100))
+        
         # Update the display
         pygame.display.flip()
 
@@ -697,6 +722,7 @@ while True:
         game_over_choice = None
         while game_over_choice is None:
             game_over_menu.draw(screen)
+            
             pygame.display.flip()
             game_over_choice = game_over_menu.handle_events()
             
