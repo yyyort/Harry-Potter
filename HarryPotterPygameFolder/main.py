@@ -28,7 +28,7 @@ if not cap.isOpened():
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
     #   Pygame Framerate
-GAME_FPS = 120
+GAME_FPS = 240
     #   Pygame Background Color
 BACKGROUND_COLOR = (60, 60, 60)
     #   Player Movement and Enemy Movement Speed
@@ -501,8 +501,6 @@ game_over_menu = None
 desired_fps = 60
 cap.set(cv2.CAP_PROP_FPS, desired_fps)
 
-
-    
 if not cap.set(cv2.CAP_PROP_FPS, desired_fps):
     print("Error: Could not set the desired frame rate.")
     
@@ -568,6 +566,7 @@ while True:
         
     # Display the frame in a window
     cv2.imshow("Camera Preview", frame)
+    cv2.waitKey(1)
 
     # Exit the loop when the user presses the 'q' key
     if cv2.waitKey(1) & 0xFF == ord('q'):
