@@ -34,8 +34,8 @@ if not cap.isOpened():
 #   Game Constants
 
     #   Window Dimension
-SCREEN_WIDTH = 1080
-SCREEN_HEIGHT = 720
+SCREEN_WIDTH = 1920 # Default 1920 x 1080
+SCREEN_HEIGHT = 1080
     #   Pygame Framerate
 GAME_FPS = 240
     #   Pygame Background Color
@@ -44,7 +44,7 @@ BACKGROUND_COLOR = (60, 60, 60)
 PLAYER_SPEED = 10   #   Default 10
 ENEMY_SPEED = 10    #   Default 10
     #   Interval Constant(s)
-ENEMY_SPAWN_INTERVAL = 1   #   Frames between enemy spawn (Default 30)
+ENEMY_SPAWN_INTERVAL = 30   #   Frames between enemy spawn (Default 30)
 ENEMY_SPAWN_DECREASE = 2    #   Increasing enemy spawn rate (Default 2)
 ENEMY_SPAWN_DECREASE_INTERVAL = 5000    #   5 seconds (milliseconds)
 
@@ -57,7 +57,7 @@ BULLET_SPEED = 16 * 2
 BULLET_SPEED_INCREASE = 8
 BULLET_SPEED_INCREASE_INTERVAL = 5000
 
-BULLET_FIRE_DELAY = 30 # Delay in frames between consecutive shots
+BULLET_FIRE_DELAY = 30 # Delay in frames between consecutive shots (Default 30)
 BULLET_FIRE_DELAY_INCREASE = 2
 BULLET_FIRE_DELAY_INCREASE_INTERVAL = 5000
 
@@ -147,7 +147,7 @@ class Menu:
     def draw(self, screen):
         screen.fill(MENU_BACKGROUND_COLOR)
         welcome_text = self.font.render("HARRY POTTER TOWER DEFENSE", True, MENU_TEXT_COLOR)
-        play_text = self.font.render("PLAY", True, MENU_TEXT_COLOR)
+        play_text = self.font.render("--> PLAY <--", True, MENU_TEXT_COLOR)
         #exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
         screen.blit(welcome_text, (self.welcome_text_title.centerx - welcome_text.get_width() // 2, self.welcome_text_title.centery - welcome_text.get_height() // 2))
         screen.blit(play_text, (self.play_button.centerx - play_text.get_width() // 2, self.play_button.centery - play_text.get_height() // 2))
@@ -176,7 +176,7 @@ class GameOverMenu:
     def draw(self, screen):
         screen.fill(MENU_BACKGROUND_COLOR)
         game_over_text = self.font.render("GAME OVER!", True, MENU_TEXT_COLOR)
-        replay_text = self.font.render("REPLAY", True, MENU_TEXT_COLOR)
+        replay_text = self.font.render("--> REPLAY <--", True, MENU_TEXT_COLOR)
         #exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
         player_score_text = self.font.render (f"Your Score: {player.score}", True, MENU_TEXT_COLOR)
         screen.blit(replay_text, (self.replay_button.centerx - replay_text.get_width() // 2, self.replay_button.centery - replay_text.get_height() // 2))
@@ -283,8 +283,8 @@ class Player:
 #   Weapon Class  
 class Weapon:
     def __init__(self, player_weapon):
-        player_weapon_scale = pygame.transform.scale(player_weapon, (50, 50))
-        player_weapon_flip_scale = pygame.transform.scale(player_weapon, (50, 50))
+        player_weapon_scale = pygame.transform.scale(player_weapon, (25, 25))
+        player_weapon_flip_scale = pygame.transform.scale(player_weapon, (25, 25))
         self.player_weapon_flip = pygame.transform.flip(player_weapon_flip_scale, True, False)
         self.original_player_weapon_flip = player_weapon_flip_scale
         self.original_player_weapon = player_weapon_scale
@@ -623,6 +623,10 @@ while True:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                
+                pygame_background_music.stop()
+                pygame_gameover_background_music.play()
+                
                 running = False
                 game_over = True
                 
@@ -737,7 +741,7 @@ while True:
             pygame_gameover_background_music.play()
         
         # Clear the screen
-        pygame_background_image_scale = pygame.transform.scale(pygame_background_image, (1920, 1080))
+        pygame_background_image_scale = pygame.transform.scale(pygame_background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         screen.blit(pygame_background_image_scale,(0 , 0))
 
         # Draw player, objective, enemies, and bullets
