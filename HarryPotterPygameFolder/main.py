@@ -28,7 +28,7 @@ if not cap.isOpened():
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
     #   Pygame Framerate
-GAME_FPS = 60
+GAME_FPS = 120
     #   Pygame Background Color
 BACKGROUND_COLOR = (60, 60, 60)
     #   Player Movement and Enemy Movement Speed
@@ -187,7 +187,7 @@ class GameOverMenu:
 
 #   Player Class
 class Player:
-    def __init__(self, wandleft, ):
+    def __init__(self, player_weapon):
         self.image_idle = pygame.transform.scale(player_idle, (50, 75))
         self.image_left = pygame.transform.scale(player_left, (50, 75))
         self.image_right = pygame.transform.scale(player_right, (50, 75))
@@ -197,14 +197,14 @@ class Player:
         self.score = 0
         self.bullet_count = MAX_BULLET_COUNT
         self.bullet_fire_delay = 0
-        self.gun = Weapon(self.rect, wandleft, )
+        self.gun = Weapon(player_weapon)
 
     def comvis(self, x, y):
         self.rect.x = x
         self.rect.y = y
         pass
 
-    def move(self, keys, cv_x, cv_y):
+    def move(self, cv_x, cv_y):
         # Calculate the boundaries for player movement
         min_x = 0
         max_x = SCREEN_WIDTH - 50
@@ -259,7 +259,7 @@ class Player:
     
     
     def update(self):
-        self.move(keys, cv_x, cv_y)
+        self.move(cv_x, cv_y)
         
         if self.bullet_fire_delay > 0:
             self.bullet_fire_delay -= 1
@@ -270,13 +270,47 @@ class Player:
 
 #   Weapon Class  
 class Weapon:
-    def __init__(self, player_rect, wandleft):
-        wandleftscale = pygame.transform.scale(wandleft, (50, 50))
-        self.original_left_image = wandleftscale
-        self.image = self.original_left_image
+    def __init__(self, player_weapon):
+        player_weapon_scale = pygame.transform.scale(player_weapon, (50, 50))
+        player_weapon_flip_scale = pygame.transform.scale(player_weapon, (50, 50))
+        self.player_weapon_flip = pygame.transform.flip(player_weapon_flip_scale, True, False)
+        self.original_player_weapon_flip = player_weapon_flip_scale
+        self.original_player_weapon = player_weapon_scale
+        self.image = self.original_player_weapon_flip
         self.rect = self.image.get_rect()
-        self.player_rect = player_rect  # Store a reference to the player's rect
-        self.last_direction = None  # Initialize the last_direction attribute
+
+    def move(self, cv_x, cv_y):
+        # Calculate the boundaries for player movement
+        min_x = 0
+        max_x = SCREEN_WIDTH - 50
+        min_y = 100
+        max_y = SCREEN_HEIGHT - 75
+
+        # Calculate the new position based on computer vision input
+        new_x = self.rect.x + cv_x
+        new_y = self.rect.y + cv_y
+
+        # Ensure the new position is within the bounds
+        new_x = max(min_x, min(max_x, new_x))
+        new_y = max(min_y, min(max_y, new_y))
+
+        self.rect.x = new_x
+        self.rect.y = new_y
+
+        screen_width_mid = SCREEN_WIDTH // 2
+
+        if self.rect.centerx < screen_width_mid:
+            # Player is in the left half of the screen
+            self.image = self.original_player_weapon_flip
+        elif self.rect.centerx > screen_width_mid:
+            # Player is in the right half of the screen
+            self.image = self.original_player_weapon
+        else:
+            # Player is in the center of the screen
+            self.image = self.original_player_weapon_flip
+
+    def update(self, cv_x, cv_y):
+        self.move(cv_x, cv_y)
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -464,6 +498,17 @@ running = False
 game_over = False   #   Gameover Flag
 game_over_menu = None
 
+desired_fps = 60
+cap.set(cv2.CAP_PROP_FPS, desired_fps)
+
+
+    
+if not cap.set(cv2.CAP_PROP_FPS, desired_fps):
+    print("Error: Could not set the desired frame rate.")
+    
+set_fps = cap.get(cv2.CAP_PROP_FPS)
+print("Set frame rate:", set_fps)
+
 pygame_background_music.play()
 
 while True:
@@ -482,7 +527,8 @@ while True:
             game_timer.start()  # Start the game timer when the player clicks "PLAY"
 
         # Create instances of player, objective, enemies, and bullets
-            player = Player(player_weapon )
+            player = Player(player_weapon)
+            weapon = Weapon(player_weapon)
             objective = Objective()
             enemies = []
             bullets = []
@@ -565,18 +611,19 @@ while True:
             if event.type == pygame.QUIT:
                 running = False
                 game_over = True
-
-        keys = pygame.key.get_pressed()
-        player.move(keys, cv_x, cv_y)
+                
+        player.move(cv_x, cv_y)
         player.auto_attack(enemies)
+        weapon.move(cv_x, cv_y)
         
+        player.update()
+        weapon.update(cv_x, cv_y)
+        objective.update()
+
          # Spawn enemies at regular intervals
         if frame_count % ENEMY_SPAWN_INTERVAL == 0:
             enemies.append(Enemy())
-        
-        player.update()
-        objective.update()
-
+            
         # Update enemy positions and check for collisions with the objective
         for enemy in enemies:
             if enemy.is_alive:
@@ -655,6 +702,7 @@ while True:
                 BULLET_FIRE_DELAY -= BULLET_FIRE_DELAY_INCREASE
                 if BULLET_FIRE_DELAY <= 15:
                     BULLET_FIRE_DELAY_INCREASE = 0
+                    BULLET_FIRE_DELAY = 5
                 # Reset the start time to the current time
                 start_time = pygame.time.get_ticks()
                 
@@ -698,16 +746,13 @@ while True:
         font = pygame.font.Font(None, 36)
         score_text_menu = font.render(f"Your Score: {player.score}", True, (255, 255, 255))
         score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
-        screen.blit(score_text, (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100))
+        screen.blit(score_text, (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 100))
         
         # Update the display
         pygame.display.flip()
 
         # Increment frame count
         frame_count += 1
-
-        # Cap the frame rate
-        clock.tick(GAME_FPS)
 
     if game_over:
         
