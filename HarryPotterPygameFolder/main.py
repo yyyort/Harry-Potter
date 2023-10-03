@@ -507,15 +507,55 @@ if not cap.set(cv2.CAP_PROP_FPS, desired_fps):
 set_fps = cap.get(cv2.CAP_PROP_FPS)
 print("Set frame rate:", set_fps)
 
-pygame_background_music.play()
+#music
+#pygame_background_music.play()
 
 while True:
+
     if not running and not game_over:
         menu_choice = None
         while menu_choice is None:
             menu.draw(screen)
             pygame.display.flip()
             menu_choice = menu.handle_events()
+
+            #opencv 1st instance
+            ret, frame = cap.read()
+
+            frame = cv2.flip(frame, 1)
+
+            if not ret:
+                print("Error: Could not read frame.")
+                break
+
+            # Convert the frame to RGB format (MediaPipe requires RGB input)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Process the frame using the Hands model
+            results = hands.process(frame_rgb)
+
+            gesture = None
+
+            # Draw hand landmarks on the frame if hands are detected
+            if results.multi_hand_landmarks:
+                for landmarks in results.multi_hand_landmarks:
+                    mp.solutions.drawing_utils.draw_landmarks(
+                        frame, landmarks, mp_hands.HAND_CONNECTIONS)
+                    #if results:  # Add your hand gesture detection logic here
+                    thumb_landmarks = [landmarks.landmark[i] for i in thumbs_up_template]
+
+                    # Calculate the Euclidean distances between the thumb landmarks
+                    distances = [((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5 for a, b in zip(thumb_landmarks, thumb_landmarks[1:])]
+                    
+                    comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
+                    comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
+                        #comvis
+                    #player.comvis(comvis_x * SCREEN_WIDTH, comvis_y * SCREEN_HEIGHT)
+                
+            # Display the frame in a window
+            cv2.imshow("Camera Preview", frame)
+            cv2.waitKey(1)
+            #opencv end
         # Game start
         if menu_choice == "PLAY":
             running = True
@@ -530,10 +570,12 @@ while True:
             objective = Objective()
             enemies = []
             bullets = []
+
+            
     
-     #opencv
+    #opencv 1st instance
     ret, frame = cap.read()
-    
+
     frame = cv2.flip(frame, 1)
 
     if not ret:
@@ -545,7 +587,7 @@ while True:
 
     # Process the frame using the Hands model
     results = hands.process(frame_rgb)
-    
+
     gesture = None
 
     # Draw hand landmarks on the frame if hands are detected
@@ -561,16 +603,12 @@ while True:
             
             comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
             comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
-             #comvis
+                #comvis
             player.comvis(comvis_x * SCREEN_WIDTH, comvis_y * SCREEN_HEIGHT)
         
     # Display the frame in a window
     cv2.imshow("Camera Preview", frame)
     cv2.waitKey(1)
-
-    # Exit the loop when the user presses the 'q' key
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
     #opencv end
     
     if running:
@@ -585,26 +623,6 @@ while True:
         gesture = None
         cv_x = 0
         cv_y = 0
-
-        # Draw hand landmarks on the frame if hands are detected
-        if results.multi_hand_landmarks:
-            for landmarks in results.multi_hand_landmarks:
-                mp.solutions.drawing_utils.draw_landmarks(frame, landmarks, mp_hands.HAND_CONNECTIONS)
-
-                # Calculate the centroid (average) position of all landmarks
-                x_sum = 0
-                y_sum = 0
-                for landmark in landmarks.landmark:
-                    x_sum += landmark.x
-                    y_sum += landmark.y
-
-                num_landmarks = len(landmarks.landmark)
-                cv_x = x_sum / num_landmarks  # Calculate the centroid x-coordinate
-                cv_y = y_sum / num_landmarks  # Calculate the centroid y-coordinate
-
-                # You can use cv_x and cv_y to control the player's position
-                # Update the player's position based on cv_x and cv_y
-                player.comvis(cv_x * SCREEN_WIDTH, cv_y * SCREEN_HEIGHT)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -755,20 +773,61 @@ while True:
 
     if game_over:
         
-        pygame_background_music.stop()
-        pygame_gameover_background_music.play()
+        #pygame_background_music.stop()
+        #pygame_gameover_background_music.play()
         # Stop the game timer when the game is over
         game_timer.stop()
-        
+
         if game_over_menu is None:
             game_over_menu = GameOverMenu()
+
+            #opencv 1st instance
+            ret, frame = cap.read()
+
+            frame = cv2.flip(frame, 1)
+
+            if not ret:
+                print("Error: Could not read frame.")
+                break
+
+            # Convert the frame to RGB format (MediaPipe requires RGB input)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Process the frame using the Hands model
+            results = hands.process(frame_rgb)
+
+            gesture = None
+
+            # Draw hand landmarks on the frame if hands are detected
+            if results.multi_hand_landmarks:
+                for landmarks in results.multi_hand_landmarks:
+                    mp.solutions.drawing_utils.draw_landmarks(
+                        frame, landmarks, mp_hands.HAND_CONNECTIONS)
+                    #if results:  # Add your hand gesture detection logic here
+                    thumb_landmarks = [landmarks.landmark[i] for i in thumbs_up_template]
+
+                    # Calculate the Euclidean distances between the thumb landmarks
+                    distances = [((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5 for a, b in zip(thumb_landmarks, thumb_landmarks[1:])]
+                    
+                    comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
+                    comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
+                        #comvis
+                    #player.comvis(comvis_x * SCREEN_WIDTH, comvis_y * SCREEN_HEIGHT)
+                
+            # Display the frame in a window
+            cv2.imshow("Camera Preview", frame)
+            cv2.waitKey(1)
+            #opencv end
             
-        game_over_choice = None
-        while game_over_choice is None:
+        #game_over_choice = None
+        #while game_over_choice is None:
+        #q: how isnt the game over menu working?
+        if game_over_menu is not None:
             game_over_menu.draw(screen)
             
             pygame.display.flip()
             game_over_choice = game_over_menu.handle_events()
+
             
         if game_over_choice == "REPLAY":
             game_over = False
@@ -787,6 +846,7 @@ while True:
             enemies.clear()
             bullets.clear()
             game_timer.reset()
+
             
     pygame.display.flip()
     clock.tick(GAME_FPS)
