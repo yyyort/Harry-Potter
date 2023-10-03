@@ -104,6 +104,9 @@ health_bar_3 = pygame.image.load("HarryPotterSprite/HPSprite/hp3.png").convert_a
 health_bar_2 = pygame.image.load("HarryPotterSprite/HPSprite/hp2.png").convert_alpha()
 health_bar_1 = pygame.image.load("HarryPotterSprite/HPSprite/hp1.png").convert_alpha()
 
+    # Background Image
+pygame_background_image = pygame.image.load("bg2.png").convert_alpha()
+
 #   Sound Effects Variables
 
     #   Background SFX
@@ -719,7 +722,8 @@ while True:
             game_over = True
         
         # Clear the screen
-        screen.fill(BACKGROUND_COLOR)
+        background_image = pygame.transform.scale(pygame_background_image, (1920, 1080))
+        screen.blit(background_image, (0, 0))
 
         # Draw player, objective, enemies, and bullets
             
