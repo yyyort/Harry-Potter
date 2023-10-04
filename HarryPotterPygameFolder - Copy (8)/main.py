@@ -80,8 +80,9 @@ pygame.display.set_caption("Defend the Objective")
 
 # Font Variable(s)
 
-pixel_font = pygame.font.Font("Minecraft.ttf", MENU_FONT_SIZE)
-pixel_text_font = pygame.font.Font("Minecraft.ttf", MENU_FONT_SIZE // 2)
+pixel_text_large = pygame.font.Font("Minecraft.ttf", MENU_FONT_SIZE)
+pixel_text_mid = pygame.font.Font("Minecraft.ttf", MENU_FONT_SIZE // 2)
+pixel_text_small = pygame.font.Font("Minecraft.ttf", MENU_FONT_SIZE // 2 // 2)
 
 # Image Variables
 
@@ -148,7 +149,7 @@ class Menu:
         
         self.play_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 250, 200, 50)
         self.red_box = pygame.Rect(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 250, 200, 50)  # Red box below the PLAY button
-        self.font = pixel_font
+        self.font = pixel_text_large
         self.player = player  # Store the player's rect
         
     def draw(self, screen):
@@ -191,8 +192,8 @@ class GameOverMenu:
         #self.exit_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50)
         self.red_box = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 350, 200, 50)  # Red box below the PLAY button
         
-        self.font = pixel_font
-        self.font_text = pixel_text_font
+        self.font = pixel_text_large
+        self.font_text = pixel_text_mid
         self.player = player  # Store the player's rect
         
     def draw(self, screen):
@@ -201,10 +202,10 @@ class GameOverMenu:
         replay_text = self.font.render("> REPLAY <", True, MENU_TEXT_COLOR)
         
         developers_text = self.font_text.render("Developers:", True, MENU_TEXT_COLOR)
-        game_dev = self.font_text.render("Gesulgon, Shon Mikhael - GAME DESIGN", True, MENU_TEXT_COLOR)
+        game_dev = self.font_text.render("Gesulgon, Shon Mikhael - LEAD PROGRAMMER", True, MENU_TEXT_COLOR)
         back_game_dev_0 = self.font_text.render("Allado, Christian Jay - COMPUTER VISION", True, MENU_TEXT_COLOR)
         back_game_dev_1 = self.font_text.render("Pahilga, Ian Troy - COMPUTER VISION", True, MENU_TEXT_COLOR)
-        supervisor = self.font_text.render("De La Cruz, Joseph Andrean - LEAD SOFTWARE DEVELOPER", True, MENU_TEXT_COLOR)
+        supervisor = self.font_text.render("De La Cruz, Joseph Andrean - PROGRAMMER", True, MENU_TEXT_COLOR)
         
         creative_text = self.font_text.render("Creatives:", True, MENU_TEXT_COLOR)
         sprite_img = self.font_text.render("Chua, Markuly - SPRITE DESIGN", True, MENU_TEXT_COLOR)
@@ -552,7 +553,7 @@ class Timer:
             minutes = int(self.elapsed_time // 60)
             seconds = int(self.elapsed_time % 60)
             time_text = f"Time: {minutes:02d}:{seconds:02d}"
-            text_surface = pixel_font.render(time_text, True, (255, 255, 255))
+            text_surface = pixel_text_large.render(time_text, True, (255, 255, 255))
             screen.blit(text_surface, (50, SCREEN_HEIGHT - 75))
             
 # Create instances of player, objective, enemies, and bullets
@@ -815,7 +816,7 @@ while cap.isOpened() and running:
         for bullet in bullets:
             bullet.draw(screen)
             
-        score_text = pixel_font.render(f"Score: {player.score}", True, (255, 255, 255))
+        score_text = pixel_text_large.render(f"Score: {player.score}", True, (255, 255, 255))
         screen.blit(score_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT - 100))
 
         # Increment frame count
