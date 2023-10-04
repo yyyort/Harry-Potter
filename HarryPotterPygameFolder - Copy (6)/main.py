@@ -45,7 +45,7 @@ BACKGROUND_COLOR = (255, 255, 255)
 PLAYER_SPEED = 10   #   Default 10
 ENEMY_SPEED = 10    #   Default 10
     #   Interval Constant(s)
-ENEMY_SPAWN_INTERVAL = 999   #   Frames between enemy spawn (Default 30)
+ENEMY_SPAWN_INTERVAL = 30   #   Frames between enemy spawn (Default 30)
 ENEMY_SPAWN_DECREASE = 2    #   Increasing enemy spawn rate (Default 2)
 ENEMY_SPAWN_DECREASE_INTERVAL = 5000    #   5 seconds (milliseconds)
 
@@ -68,7 +68,7 @@ BULLET_AUTO_ATTACK_RADIUS = 250  # Adjust this radius as needed
 
 OBJECTIVE_HIT_POINTS = 100
 
-MENU_BACKGROUND_COLOR = (0, 0, 0)
+MENU_BACKGROUND_COLOR = (15, 15, 15)
 MENU_TEXT_COLOR = (255, 255, 255)
 MENU_FONT_SIZE = 48
 
@@ -838,7 +838,7 @@ while True:
             objective.health = OBJECTIVE_HIT_POINTS
             
             ENEMY_SPEED = 10
-            ENEMY_SPAWN_INTERVAL = 9999
+            ENEMY_SPAWN_INTERVAL = 30
             ENEMY_SPAWN_DECREASE = 2
             
             BULLET_FIRE_DELAY_INCREASE = 2
