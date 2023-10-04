@@ -114,7 +114,7 @@ health_bar_2 = pygame.image.load("HarryPotterSprite/HPSprite/hp2.png").convert_a
 health_bar_1 = pygame.image.load("HarryPotterSprite/HPSprite/hp1.png").convert_alpha()
 
     # Background
-pygame_background_image = pygame.image.load("HP Game BG.png").convert_alpha()
+pygame_background_image = pygame.image.load("bg2.png").convert_alpha()
 
 #   Sound Effects Variables
 
@@ -335,7 +335,7 @@ class Objective:
         self.ruby2 = pygame.transform.scale(objective_half, (50, 50))
         self.ruby3 = pygame.transform.scale(objective_quarter, (50, 50))
         
-        self.rect = pygame.Rect(SCREEN_WIDTH // 2 - 25, SCREEN_HEIGHT // 2 - 25, 50, 50)
+        self.rect = pygame.Rect(SCREEN_WIDTH // 2 - 33, SCREEN_HEIGHT // 2 - 33, 50, 50)
         self.bRect = pygame.Rect(SCREEN_WIDTH // 2 - 960 / 2, 10, SCREEN_WIDTH // 2, 50)
         
         # Initialize all health bars, including bar10
