@@ -145,31 +145,90 @@ enemy_death_sfx = pygame.mixer.Sound("HarryPotterSFX/enemy_death_sfx.mp3")
 class Menu:
     def __init__(self):
         
+        self.image = pygame.transform.scale(player_idle, (50, 75))
+        self.image_idle = pygame.transform.scale(player_idle, (50, 75))
+        self.image_left = pygame.transform.scale(player_left, (50, 75))
+        self.image_right = pygame.transform.scale(player_right, (50, 75))
+        self.rect = self.image.get_rect()
+        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 350)
+
+        # Create a rectangle outside the screen.blit perimeter
+        self.text_rect = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.text_rect.inflate_ip(-100, -100)
+
         self.welcome_text_title = pygame.Rect(SCREEN_WIDTH // 2 - 90, SCREEN_HEIGHT // 2 - 150, 200, 50)
         self.play_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 50)
         #self.exit_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50)
         self.font = pixel_font
         
+    def comvis(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+        pass
+
+    def move(self, cv_x, cv_y):
+        # Calculate the boundaries for player movement
+        min_x = 0
+        max_x = SCREEN_WIDTH - 50
+        min_y = 100
+        max_y = SCREEN_HEIGHT - 75
+
+        # Calculate the new position based on computer vision input
+        new_x = self.rect.x + cv_x
+        new_y = self.rect.y + cv_y
+
+        # Ensure the new position is within the bounds
+        new_x = max(min_x, min(max_x, new_x))
+        new_y = max(min_y, min(max_y, new_y))
+
+        self.rect.x = new_x
+        self.rect.y = new_y
+
+        # Determine the player's area on the screen
+        screen_width_mid = SCREEN_WIDTH // 2
+        screen_height_mid = SCREEN_HEIGHT // 2
+
+        if self.rect.centerx < screen_width_mid:
+            # Player is in the left half of the screen
+            self.image = self.image_left
+        elif self.rect.centerx > screen_width_mid:
+            # Player is in the right half of the screen
+            self.image = self.image_right
+        else:
+            # Player is in the center of the screen
+            self.image = self.image_idle
+        
+    def update(self):
+        self.move(cv_x, cv_y)
+        
     def draw(self, screen):
         screen.fill(MENU_BACKGROUND_COLOR)
+        
         welcome_text = self.font.render("HARRY POTTER TOWER DEFENSE", True, MENU_TEXT_COLOR)
         play_text = self.font.render("> PLAY <", True, MENU_TEXT_COLOR)
         #exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
         screen.blit(welcome_text, (self.welcome_text_title.centerx - welcome_text.get_width() // 2, self.welcome_text_title.centery - welcome_text.get_height() // 2))
-        screen.blit(play_text, (self.play_button.centerx - play_text.get_width() // 2, self.play_button.centery - play_text.get_height() // 2))
+        play_text = self.font.render("> PLAY <", True, MENU_TEXT_COLOR)
+        screen.blit(play_text, (self.text_rect.centerx - play_text.get_width() // 2, self.text_rect.centery - play_text.get_height() // 2 + 100))
+
         #screen.blit(exit_text, (self.exit_button.centerx - exit_text.get_width() // 2, self.exit_button.centery - exit_text.get_height() // 2))
         
+        screen.blit(self.image, self.rect)
+        
+    def collide_with_player(self, player):
+        return self.rect.colliderect(player.rect)
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif self.rect.collidepoint(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2):
+                return "Play"
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if self.play_button.collidepoint(event.pos):
                     return "PLAY"
-                #elif self.exit_button.collidepoint(event.pos):
-                    pygame.quit()
-                    sys.exit()
+                
         return None
 
 #   Gameover Menu
@@ -285,6 +344,58 @@ class Player:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
         self.gun.draw(screen)
+
+"""class Menu_Player:
+    def __init__(self):
+        self.image = pygame.transform.scale(player_idle, (50, 75))
+        self.image_idle = pygame.transform.scale(player_idle, (50, 75))
+        self.image_left = pygame.transform.scale(player_left, (50, 75))
+        self.image_right = pygame.transform.scale(player_right, (50, 75))
+        self.rect = self.image.get_rect()
+        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 350)
+
+    def comvis(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+        pass
+
+    def move(self, cv_x, cv_y):
+        # Calculate the boundaries for player movement
+        min_x = 0
+        max_x = SCREEN_WIDTH - 50
+        min_y = 100
+        max_y = SCREEN_HEIGHT - 75
+
+        # Calculate the new position based on computer vision input
+        new_x = self.rect.x + cv_x
+        new_y = self.rect.y + cv_y
+
+        # Ensure the new position is within the bounds
+        new_x = max(min_x, min(max_x, new_x))
+        new_y = max(min_y, min(max_y, new_y))
+
+        self.rect.x = new_x
+        self.rect.y = new_y
+
+        # Determine the player's area on the screen
+        screen_width_mid = SCREEN_WIDTH // 2
+        screen_height_mid = SCREEN_HEIGHT // 2
+
+        if self.rect.centerx < screen_width_mid:
+            # Player is in the left half of the screen
+            self.image = self.image_left
+        elif self.rect.centerx > screen_width_mid:
+            # Player is in the right half of the screen
+            self.image = self.image_right
+        else:
+            # Player is in the center of the screen
+            self.image = self.image_idle
+    
+    def update(self):
+        self.move(cv_x, cv_y)
+
+    def draw(self):
+        screen.blit(self.image, self.rect)"""
 
 #   Weapon Class  
 class Weapon:
@@ -520,6 +631,9 @@ pygame_background_music.play(-1)
 
 while True:
     
+    cv_x = 0
+    cv_y = 0
+    
     #opencv
     ret, frame = cap.read()
     
@@ -552,6 +666,22 @@ while True:
             
             comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
             comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
+            
+            # Calculate the centroid (average) position of all landmarks
+            x_sum = 0
+            y_sum = 0
+            for landmark in landmarks.landmark:
+                x_sum += landmark.x
+                y_sum += landmark.y
+
+            num_landmarks = len(landmarks.landmark)
+            cv_x = x_sum / num_landmarks  # Calculate the centroid x-coordinate
+            cv_y = y_sum / num_landmarks  # Calculate the centroid y-coordinate
+
+            # You can use cv_x and cv_y to control the player's position
+            
+            # Update the player's position based on cv_x and cv_y
+            menu.comvis(cv_x * SCREEN_WIDTH, cv_y * SCREEN_HEIGHT)
     
     # Display the frame in a window
     cv2.imshow("Camera Preview", frame)
@@ -565,6 +695,8 @@ while True:
         menu_choice = None
         if menu_choice is None:
             
+            menu.move(cv_x, cv_y)
+            menu.update()
             menu.draw(screen)
             menu_choice = menu.handle_events()
             
