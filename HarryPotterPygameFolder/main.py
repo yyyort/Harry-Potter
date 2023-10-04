@@ -389,10 +389,10 @@ class Objective:
       
 class Enemy:
     def __init__(self):
-        self.spawn_image = pygame.transform.scale(enemy_spawn, (75, 75))
-        self.death_image = pygame.transform.scale(enemy_death, (75, 75))
-        self.walk_left_image = pygame.transform.scale(enemy_move_left, (75, 75))
-        self.walk_right_image = pygame.transform.scale(enemy_move_right, (75, 75))
+        self.spawn_image = pygame.transform.scale(enemy_spawn, (100, 100))
+        self.death_image = pygame.transform.scale(enemy_death, (100, 100))
+        self.walk_left_image = pygame.transform.scale(enemy_move_left, (100, 100))
+        self.walk_right_image = pygame.transform.scale(enemy_move_right, (100, 100))
         self.image = self.spawn_image  # Initialize with the spawn image
         
         self.rect = pygame.Rect(random.randint(0, SCREEN_WIDTH - 100), random.randint(0, SCREEN_HEIGHT - 100), 75, 75)
@@ -534,7 +534,7 @@ while True:
         print("Error: Could not read frame.")
         break
      
-     # Draw hand landmarks on the frame if hands are detected
+    # Draw hand landmarks on the frame if hands are detected
     if results.multi_hand_landmarks:
         for landmarks in results.multi_hand_landmarks:
             mp.solutions.drawing_utils.draw_landmarks(
@@ -763,9 +763,6 @@ while True:
         score_text_menu = font.render(f"Your Score: {player.score}", True, (255, 255, 255))
         score_text = font.render(f"Score: {player.score}", True, (255, 255, 255))
         screen.blit(score_text, (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 100))
-        
-        # Update the display
-        pygame.display.flip()
 
         # Increment frame count
         frame_count += 1
@@ -774,19 +771,19 @@ while True:
         
             #opencv
         ret, frame = cap.read()
-        
+
         frame = cv2.flip(frame, 1)
-        
+
         # Convert the frame to RGB format (MediaPipe requires RGB input)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
+
         #frame = cv2.flip(frame, 1)
-        
+
         # Process the frame using the Hands model
         results = hands.process(frame_rgb)
-        
+
         gesture = None
-        
+
         if not ret:
             print("Error: Could not read frame.")
             break
@@ -836,8 +833,19 @@ while True:
             player.bullet_count = MAX_BULLET_COUNT
             player.bullet_fire_delay = 0
             objective.health = OBJECTIVE_HIT_POINTS
+            
             ENEMY_SPEED = 10
-            ENEMY_SPAWN_INTERVAL = 1
+            ENEMY_SPAWN_INTERVAL = 30
+            ENEMY_SPAWN_DECREASE = 2
+            
+            BULLET_FIRE_DELAY_INCREASE = 2
+            BULLET_FIRE_DELAY = 30
+            
+            BULLET_SPEED = 16 * 2
+            BULLET_SPEED_INCREASE = 8
+            
+            ABLE_TO_ATTACK_DELAY = 10
+            
             enemies.clear()
             bullets.clear()
             game_timer.reset()
