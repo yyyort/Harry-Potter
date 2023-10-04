@@ -212,6 +212,8 @@ class GameOverMenu:
         background_img = self.font_text.render("Gepes, Alexandra Cristina - BACKGROUND DESIGN", True, MENU_TEXT_COLOR)
         game_sfx = self.font_text.render("Leetian, Diego Paul - SFX DESIGN", True, MENU_TEXT_COLOR)
         
+        gdsc_text = self.font.render("Google Developer Student Clubs", True, MENU_TEXT_COLOR)
+        usa_text = self.font_text.render("University of San Agustin", True, MENU_TEXT_COLOR)
         
         #exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
         player_score_text = self.font.render (f"Your Score: {player.score}", True, MENU_TEXT_COLOR)
@@ -228,6 +230,8 @@ class GameOverMenu:
         screen.blit(sprite_img, (50, 400))
         screen.blit(background_img, (50, 450))
         screen.blit(game_sfx, (50, 500))
+        screen.blit(gdsc_text, (50, SCREEN_HEIGHT - 100))
+        screen.blit(usa_text, (50, SCREEN_HEIGHT - 150))
         
     def handle_events(self):
         for event in pygame.event.get():
