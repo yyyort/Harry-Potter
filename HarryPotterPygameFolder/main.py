@@ -146,13 +146,14 @@ class Menu:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            #q: how to get mouse 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if self.play_button.collidepoint(event.pos):
                     return "PLAY"
                 elif self.exit_button.collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()
-        return None
+        #return None
 
 #   Gameover Menu
 class GameOverMenu:
@@ -534,7 +535,7 @@ while True:
             # Process the frame using the Hands model
             results = hands.process(frame_rgb)
 
-            gesture = None
+            #gesture = None
 
             # Draw hand landmarks on the frame if hands are detected
             if results.multi_hand_landmarks:
@@ -546,11 +547,15 @@ while True:
 
                     # Calculate the Euclidean distances between the thumb landmarks
                     distances = [((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5 for a, b in zip(thumb_landmarks, thumb_landmarks[1:])]
-                    
+
                     comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
                     comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
                         #comvis
                     #player.comvis(comvis_x * SCREEN_WIDTH, comvis_y * SCREEN_HEIGHT)
+
+
+                    pygame.mouse.set_pos(comvis_x * SCREEN_WIDTH, comvis_y * SCREEN_HEIGHT)
+                
                 
             # Display the frame in a window
             cv2.imshow("Camera Preview", frame)
