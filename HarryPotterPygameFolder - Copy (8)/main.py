@@ -155,7 +155,7 @@ class Menu:
         screen.fill(MENU_BACKGROUND_COLOR)
         harry_text = self.font.render("HARRY POTTER", True, MENU_TEXT_COLOR)
         and_text = self.font.render("AND THE", True, MENU_TEXT_COLOR)
-        stone_text = self.font.render("SORCEROR STONE", True, MENU_TEXT_COLOR)
+        stone_text = self.font.render("SORCERER STONE", True, MENU_TEXT_COLOR)
         play_text = self.font.render("> PLAY <", True, MENU_TEXT_COLOR)
         #exit_text = self.font.render("EXIT", True, MENU_TEXT_COLOR)
         screen.blit(harry_text, (SCREEN_WIDTH // 2 - 195, SCREEN_HEIGHT // 2 - 300))
