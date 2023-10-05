@@ -168,10 +168,6 @@ class Menu:
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                
-                game_over = True
-                game_running = False
-                
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -206,10 +202,10 @@ class GameOverMenu:
         replay_text = self.font.render("> REPLAY <", True, MENU_TEXT_COLOR)
         
         developers_text = self.font_text.render("Developers:", True, MENU_TEXT_COLOR)
-        supervisor = self.font_text.render("De La Cruz, Joseph Andrean - LEAD DEVELOPER", True, MENU_TEXT_COLOR)
-        back_game_dev_0 = self.font_text.render("Allado, Christian Jay - PROJECT MANAGER", True, MENU_TEXT_COLOR)
-        back_game_dev_1 = self.font_text.render("Pahilga, Ian Troy - DEVELOPER", True, MENU_TEXT_COLOR)
-        game_dev = self.font_text.render("Gesulgon, Shon Mikhael - CORE DEVELOPER", True, MENU_TEXT_COLOR)
+        game_dev = self.font_text.render("Gesulgon, Shon Mikhael - LEAD PROGRAMMER", True, MENU_TEXT_COLOR)
+        back_game_dev_0 = self.font_text.render("Allado, Christian Jay - COMPUTER VISION", True, MENU_TEXT_COLOR)
+        back_game_dev_1 = self.font_text.render("Pahilga, Ian Troy - COMPUTER VISION", True, MENU_TEXT_COLOR)
+        supervisor = self.font_text.render("De La Cruz, Joseph Andrean - PROGRAMMER", True, MENU_TEXT_COLOR)
         
         creative_text = self.font_text.render("Creatives:", True, MENU_TEXT_COLOR)
         sprite_img = self.font_text.render("Chua, Markuly - SPRITE DESIGN", True, MENU_TEXT_COLOR)
@@ -226,10 +222,10 @@ class GameOverMenu:
         screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 250))
         screen.blit(player_score_text, (SCREEN_WIDTH // 2 - 155, SCREEN_HEIGHT // 2 + 150))
         screen.blit(developers_text, (50, 50))
-        screen.blit(supervisor, (50, 100))
+        screen.blit(game_dev, (50, 100))
         screen.blit(back_game_dev_0, (50, 150))
         screen.blit(back_game_dev_1, (50, 200))
-        screen.blit(game_dev, (50, 250))
+        screen.blit(supervisor, (50, 250))
         screen.blit(creative_text, (50, 350))
         screen.blit(sprite_img, (50, 400))
         screen.blit(background_img, (50, 450))
@@ -240,10 +236,6 @@ class GameOverMenu:
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                
-                self.game_over = True
-                self.game_running = False
-                
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -623,7 +615,7 @@ while cap.isOpened() and running:
     # Draw hand landmarks on the frame if hands are detected
     if results.multi_hand_landmarks:
         for landmarks in results.multi_hand_landmarks:
-            mp.solutions.drawing_utils.draw_landmarks(
+            """mp.solutions.drawing_utils.draw_landmarks(
                 frame, landmarks, mp_hands.HAND_CONNECTIONS)
             #if results:  # Add your hand gesture detection logic here
             thumb_landmarks = [landmarks.landmark[i] for i in thumbs_up_template]
@@ -632,7 +624,7 @@ while cap.isOpened() and running:
             distances = [((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5 for a, b in zip(thumb_landmarks, thumb_landmarks[1:])]
             
             comvis_x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
-            comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
+            comvis_y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y"""
             
             # Calculate the centroid (average) position of all landmarks
             x_sum = 0
@@ -662,15 +654,6 @@ while cap.isOpened() and running:
         menu_choice = None
         if menu_choice is None:
             
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    
-                    game_running = False
-                    game_over = True
-                    
-                    pygame_background_music.stop()
-                    pygame_gameover_background_music.play(-1)
-                    
             player.move(cv_x, cv_y)
             player.update()
             
@@ -680,7 +663,6 @@ while cap.isOpened() and running:
             menu_choice = menu.handle_events()
             """menu_choice = player.game_handle()"""
             
-                    
             pygame.display.flip()
             
     # Game start
