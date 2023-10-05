@@ -209,7 +209,7 @@ class GameOverMenu:
         supervisor = self.font_text.render("De La Cruz, Joseph Andrean - LEAD DEVELOPER", True, MENU_TEXT_COLOR)
         back_game_dev_0 = self.font_text.render("Allado, Christian Jay - PROJECT MANAGER", True, MENU_TEXT_COLOR)
         back_game_dev_1 = self.font_text.render("Pahilga, Ian Troy - DEVELOPER", True, MENU_TEXT_COLOR)
-        game_dev = self.font_text.render("Gesulgon, Shon Mikhael - CORE SOFTWARE DEVELOPER", True, MENU_TEXT_COLOR)
+        game_dev = self.font_text.render("Gesulgon, Shon Mikhael - CORE DEVELOPER", True, MENU_TEXT_COLOR)
         
         creative_text = self.font_text.render("Creatives:", True, MENU_TEXT_COLOR)
         sprite_img = self.font_text.render("Chua, Markuly - SPRITE DESIGN", True, MENU_TEXT_COLOR)
