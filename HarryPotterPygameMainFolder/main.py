@@ -16,8 +16,13 @@ hands = mp_hands.Hands()
 
 thumbs_up_template = [4, 3, 2]
 
-cap = cv2.VideoCapture(0)
-
+try:
+    cap = cv2.VideoCapture(1)
+except Exception as e:
+    print(e)
+finally:
+    cap = cv2.VideoCapture(0)
+    
 desired_fps = 60
 cap.set(cv2.CAP_PROP_FPS, desired_fps)
 
